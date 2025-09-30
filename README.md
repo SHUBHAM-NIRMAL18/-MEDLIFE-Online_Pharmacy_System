@@ -1,18 +1,42 @@
-# -MEDLIFE-Online_Pharmacy_System
-MEDLIFE is an innovative online pharmacy system designed to provide a seamless and convenient shopping experience for customers seeking pharmacy products. Our platform offers a user-friendly interface that simplifies the process of browsing, selecting, and purchasing a wide range of pharmaceutical products.
+# MEDLIFE - Online Pharmacy System
 
-For Customers: 
-a.The system should provide an interface for customers to view and search the 
-products. 
-b.The system should allow to add the desired products to the carts. 
-c.The system should give the description of every products and option to increase the 
-quantities of required products. 
-d.The system should provide login and signup option before order. 
-e. Customer can be able to change password by OTP Verification.
+**MEDLIFE** is an innovative online pharmacy system designed to provide a seamless and convenient shopping experience for customers seeking pharmacy products.  
+Our platform offers a **user-friendly interface** that simplifies the process of browsing, selecting, and purchasing a wide range of pharmaceutical products.
 
-For Admin: 
-a.The system must only allow admin with valid id and password to enter the system. 
-b.The system will allow admin to add, view and update the categories of the products. 
-c.The system should allow admin to manage the orders of the customers. 
-d.The system will allow admin to insert, update and delete the products with its 
-details.
+---
+
+## Features
+
+### For Customers
+- 🔍 View and search available products.  
+- 🛒 Add desired products to the cart.  
+- 📄 View product descriptions and increase quantities as needed.  
+- 🔑 Login and signup options before placing an order.  
+- 🔐 Change password with **OTP Verification**.  
+
+### For Admin
+- ✅ Only admins with valid ID and password can access the system.  
+- 📂 Add, view, and update product categories.  
+- 📦 Manage customer orders.  
+- 📝 Insert, update, and delete products with full details.  
+
+---
+
+## Tech Stack
+- **Frontend:** HTML, CSS  
+- **Backend:** Core PHP  
+- **Database:** MySQL  
+- **Authentication:** PHP Sessions + OTP Verification  
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Install [XAMPP](https://www.apachefriends.org/) or any PHP & MySQL server environment.  
+- Enable Apache and MySQL in XAMPP.  
+
+### Installation Steps
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/SHUBHAM-NIRMAL18/-MEDLIFE-Online_Pharmacy_System.git
