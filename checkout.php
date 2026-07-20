@@ -153,9 +153,9 @@ $page_css = "css/checkout.css";
 include('header.php');
 ?>
 
-<main class="content-container" style="min-height: 65vh; padding: 40px 24px;">
+<main class="content-container" style="min-height: 65vh; padding: 20px 20px;">
     
-    <h2 class="section-title">Checkout</h2>
+    <h2 class="section-title" style="margin-top: 10px; margin-bottom: 10px;">Checkout</h2>
     
     <div class="cart-flex-container">
         
