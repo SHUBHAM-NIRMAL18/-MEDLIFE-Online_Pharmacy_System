@@ -1,5 +1,7 @@
 
-<?php include ('dashboard.php') ?>
+<?php 
+require_once 'config.php';
+include ('dashboard.php') ?>
 <?php 
 $id = $_GET['user_id'];
 
@@ -24,7 +26,7 @@ if (isset($_POST['btnUpdate'])) {
 
  
     try{
-      $conn = new mysqli('localhost','root','','medlife');
+      $conn = get_db_connection();
       
 
      
@@ -45,7 +47,7 @@ if (isset($_POST['btnUpdate'])) {
 <?php
 
 try{
-  $conn = new mysqli('localhost','root','','medlife');
+  $conn = get_db_connection();
   
   $sql = "select * from tbl_user where user_id=$id";
   $res = $conn->query($sql);

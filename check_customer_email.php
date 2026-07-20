@@ -1,6 +1,8 @@
 <?php 
+
+require_once 'config.php';
 $email = $_POST['email'];
-$conn = new mysqli('localhost','root','','medlife');
+$conn = get_db_connection();
 $sql = "select * from tbl_user where email = '$email'";
 $result = $conn->query($sql);
 if($result->num_rows == 1)

@@ -1,4 +1,6 @@
 <?php
+
+require_once 'config.php';
 $name = $phone = $email = $address = $gender = $password= $message = '';
 
 if (isset($_POST['btnRegister'])){
@@ -51,7 +53,7 @@ else{
 
 if(count($err) == 0){
   try{
-    $conn = new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
     $sql = "insert into tbl_user(name,email,phone,address,password,gender) values ('$name','$email','$phone','$address','$password','$gender')";
     $conn->query($sql);
     if($conn->affected_rows == 1 && $conn-> insert_id > 0){

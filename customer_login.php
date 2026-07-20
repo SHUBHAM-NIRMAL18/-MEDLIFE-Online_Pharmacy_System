@@ -1,4 +1,6 @@
 <?php 
+
+require_once 'config.php';
 if (isset($_COOKIE['name'])) {
   session_start();
   $_SESSION['name'] = $_COOKIE['name'];
@@ -30,7 +32,7 @@ if (isset($_POST['btnlogin'])) {
   if (count($err) == 0) {
     
     try{
-      $connection = new mysqli('localhost','root','','medlife');
+      $connection = get_db_connection();
       $sql = "select * from tbl_user where email='$email' and password='$password'";
       $result = $connection->query($sql);
       if ($result->num_rows == 1) {

@@ -1,4 +1,6 @@
-<?php error_reporting(0); ?>
+<?php 
+require_once 'config.php';
+error_reporting(0); ?>
 
 <!DOCTYPE html>
 <html>
@@ -102,7 +104,7 @@
                 }
 
                 if(count($err)== 0){
-                    $conn = new mysqli('localhost','root','','medlife');
+                    $conn = get_db_connection();
                     $sql = "update tbl_user set password='$password' where email = '$email'";
                     if ($conn->query($sql) === TRUE) 
                     {

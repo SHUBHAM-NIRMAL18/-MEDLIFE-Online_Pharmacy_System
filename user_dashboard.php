@@ -1,4 +1,6 @@
-<?php include('header.php'); ?>
+<?php 
+require_once 'config.php';
+include('header.php'); ?>
 <?php 
 session_start();
 
@@ -126,7 +128,7 @@ if (!isset($_SESSION['login_status'])) {
     {
       $uid=$_SESSION['user_id'];
     }
-    $conn = new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
     $order = "SELECT * FROM tbl_order where user_id = $uid";
     $order_run = $conn->query($order);
     if(mysqli_num_rows($order_run) > 0)
