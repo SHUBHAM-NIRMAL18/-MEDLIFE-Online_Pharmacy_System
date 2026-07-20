@@ -79,6 +79,7 @@ include('header.php');
                                     <th>Date</th>
                                     <th>Total Price</th>
                                     <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -97,6 +98,11 @@ include('header.php');
                                                 echo "<span class='status-badge cancelled'>Cancelled</span>";
                                             }
                                             ?>
+                                        </td>
+                                        <td>
+                                            <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 5px 12px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="bx bx-map-pin"></i> Track Timeline
+                                            </a>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>
