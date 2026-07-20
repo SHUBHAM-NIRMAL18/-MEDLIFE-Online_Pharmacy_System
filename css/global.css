@@ -1160,3 +1160,105 @@ h1, h2, h3, h4, h5, h6 {
   color: #6b7280;
   font-size: 13px;
 }
+
+/* ==========================================================================
+   Toast Notification Styles
+   ========================================================================= */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast-card {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 320px;
+  max-width: 450px;
+  pointer-events: auto;
+  transform: translateX(130%);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+  opacity: 0;
+}
+
+.toast-card.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-icon {
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-icon.success {
+  color: var(--success);
+  border-left-color: var(--success);
+}
+
+.toast-card.success-border {
+  border-left-color: var(--success);
+}
+
+.toast-card.error-border {
+  border-left-color: var(--danger);
+}
+
+.toast-card.info-border {
+  border-left-color: var(--secondary-hover);
+}
+
+.toast-icon.error {
+  color: var(--danger);
+}
+
+.toast-icon.info {
+  color: var(--secondary-hover);
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.toast-message {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 18px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.toast-close:hover {
+  color: var(--text-main);
+}
