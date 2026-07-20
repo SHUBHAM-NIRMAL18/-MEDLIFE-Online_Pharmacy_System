@@ -1,147 +1,118 @@
 <?php 
 require_once 'config.php';
-error_reporting(0); ?>
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Reset Password</title>
-  <style>
-    /* body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-      background-color: #f1f1f1;
-    } */
+$password = $conpassword = '';
+$err = [];
+$email = isset($_SESSION['IS_LOGIN']) ? $_SESSION['IS_LOGIN'] : '';
 
-    .reset {
-      width: 300px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      margin-left:600px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+if (empty($email)) {
+    header('location:forget_password.php');
+    exit();
+}
+
+if (isset($_POST['btnReset'])) {
+    if (isset($_POST['password']) && !empty($_POST['password'])) {
+        $pass_val = $_POST['password'];
+        // Require at least 8 chars, 1 uppercase, 1 lowercase, and 1 number
+        if (!preg_match("/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/", $pass_val)) {
+            $err['password'] = "Must be 8+ characters with uppercase, lowercase & digits.";
+        } else {
+            $password = md5($pass_val);
+        }
+    } else {
+        $err['password'] = 'Please enter your password.';
     }
 
-    .reset h2 {
-      margin-top: 0;
-      text-align: center;
+    if (isset($_POST['conpassword']) && !empty($_POST['conpassword']) && trim($_POST['conpassword'])) {
+        $conpassword = md5(trim($_POST['conpassword']));
+    } else {
+        $err['conpassword'] = 'Please confirm your password.';
     }
 
-    .form-group {
-      margin-bottom: 20px;
+    if (empty($err['password']) && empty($err['conpassword']) && $password !== $conpassword) {
+        $err['conpassword'] = 'Confirm password does not match.';
     }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    .form-group input[type="password"] {
-      width: 90%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-
-    .btn-reset {
-      width: 100%;
-      padding: 10px;
-      background-color: #4CAF50;
-      color: #fff;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .btn-reset:hover {
-      background-color: #45a049;
-    }
-  </style>
-</head>
-        <?php
-            session_start();
-            $password = $conpassword = '';
-            if(isset($_POST['btnReset']))
-            
-            {
-                $err=[];
-                if(isset($_POST['password']) && !empty($_POST['password'])){
-                    if(!preg_match("/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/",$_POST['password']))
-                    {
-                        $err['password'] = "Password must have at least one lowercase,uppercase,number";
-                    }
-                    else
-                    {
-                        $password = md5($_POST['password']);
-                    }
+    if (count($err) == 0) {
+        try {
+            $conn = get_db_connection();
+            $stmt = $conn->prepare("UPDATE tbl_user SET password = ? WHERE email = ?");
+            if ($stmt) {
+                $stmt->bind_param("ss", $password, $email);
+                if ($stmt->execute()) {
+                    unset($_SESSION['IS_LOGIN']);
+                    unset($_SESSION['user_email']);
+                    
+                    $_SESSION['toast'] = [
+                        'type' => 'success',
+                        'title' => 'Password Reset',
+                        'message' => 'Your password has been changed successfully. Please log in.'
+                    ];
+                    
+                    header('location:customer_login.php');
+                    exit();
+                } else {
+                    $err['error'] = "Something went wrong. Please try again.";
                 }
-                else
-                {
-                    $err['password'] = 'Please enter your password';
-                }
-                if(isset($_POST['conpassword']) && !empty($_POST['conpassword']) && trim($_POST['conpassword']))
-                {
-                    $conpassword = md5($_POST['conpassword']);
-                  }
-                  else
-                  {
-                    $err['conpassword'] = 'Please enter your confirm password';
-                  }
-        
-                  if($password != $conpassword)
-                  {
-                    $err['conpassword'] = 'Password doesnot match';
-                  }
-                  if(isset($_SESSION['IS_LOGIN'])){
-                    $email = $_SESSION['IS_LOGIN'];
-                }
-
-                if(count($err)== 0){
-                    $conn = get_db_connection();
-                    $sql = "update tbl_user set password='$password' where email = '$email'";
-                    if ($conn->query($sql) === TRUE) 
-                    {
-                        unset($_SESSION['IS_LOGIN']);
-                        echo "<script>alert('Password Changed');</script>";
-                        echo  "<script type='text/javascript'>";
-                        echo "window.location.href='customer_login.php'"; 
-                        echo "</script>";
-                      } else 
-                      {
-                        $err['error']="Something went wrong.Try again";
-                      }
-                }
+                $stmt->close();
             }
+        } catch (Exception $e) {
+            $err['error'] = "Database update error: " . $e->getMessage();
+        }
+    }
+}
 
+$page_title = "Reset Password";
+$page_css = "css/register.css";
+include('header.php');
+?>
 
+<main class="auth-wrapper" style="padding: 40px 0;">
+  <div class="content-container" style="display: flex; justify-content: center;">
+    <div class="auth-card" style="max-width: 500px; min-height: auto;">
+      
+      <div class="auth-form-side" style="padding: 40px;">
+        <h2>New Password</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px; margin-top: -12px;">
+            Set a strong and secure password for <strong style="color: var(--text-main);"><?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?></strong>.
+        </p>
 
-        ?>
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>" novalidate>
+          
+          <?php if (isset($err['error'])): ?>
+              <div class="alert alert-error"><?php echo $err['error']; ?></div>
+          <?php endif; ?>
 
-<body>
-<a href="index.php"><img src="logo/MEDLOGO.png" width="10%" height="50%" style="margin-left:700px;margin-top:180px;"alt=""></a>
-  <div class="reset">
-    <h2>Reset Password</h2>
-    <form method="POST">
-      <div class="form-group">
-        <span name="error" style="color:red;font-size:14px"><?php echo (isset($err['error'])?$err['error']:'');?></span>
-        <label for="password">New Password:</label>
-        <input type="password" id="password" name="password" >
-        <div style="color:red;font-size:14px"><?php echo (isset($err['password'])?$err['password']:'');?></div>
+          <div class="form-group">
+            <label for="password">New Password</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Minimum 8 characters" required>
+            <?php if (isset($err['password'])): ?>
+                <span class="error-text"><?php echo $err['password']; ?></span>
+            <?php endif; ?>
+          </div>
+
+          <div class="form-group">
+            <label for="conpassword">Confirm Password</label>
+            <input type="password" id="conpassword" name="conpassword" class="form-control" placeholder="Re-type password" required>
+            <?php if (isset($err['conpassword'])): ?>
+                <span class="error-text"><?php echo $err['conpassword']; ?></span>
+            <?php endif; ?>
+          </div>
+          
+          <div class="auth-actions">
+            <button class="btn btn-primary" name="btnReset" type="submit" style="width: 100%; height: 42px; font-weight: 600;">
+                <i class="bx bx-check-double" style="font-size: 16px;"></i> Update Password
+            </button>
+            <a href="customer_login.php" class="auth-link">← Cancel and Back to Log In</a>
+          </div>
+        </form>
       </div>
-      <div class="form-group">
-        <label for="conpassword">Confirm Password:</label>
-        <input type="password" id="conpassword" name="conpassword">
-        <div style="color:red;font-size:14px"><?php echo (isset($err['conpassword'])?$err['conpassword']:'');?></div>
-      </div>
-      <button class="btn-reset" name="btnReset" type="submit">Reset Password</button>
-    </form>
+
+    </div>
   </div>
-</body>
-</html>
+</main>
+
+<?php include('footer.php'); ?>
