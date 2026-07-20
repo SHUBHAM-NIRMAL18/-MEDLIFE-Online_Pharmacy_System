@@ -1,168 +1,132 @@
-
-
 <?php  
-
-
-
-
 require_once 'config.php';
-if(isset($_GET['id'])){
-    $product_id = $_GET['id'];
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$product_id = 0;
+if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+    $product_id = (int)$_GET['id'];
     $conn = get_db_connection();
-   $sql = "SELECT * FROM tbl_products  WHERE prdct_id=$product_id";
-   $result = mysqli_query($conn, $sql);
-//    header('location:products.php');
-
-$row = mysqli_fetch_assoc($result);
-$prdct_img = $row['prdct_img'];
-$product_name  = $row['prdct_name'];
- 
-$price  = $row['prdct_price'];
-
-}
-if (isset($_SESSION['cart'][$product_id]['quantity'])) {
-  $quantity = $_SESSION['cart'][$product_id]['quantity'];
+    
+    // Fetch product details
+    $stmt = $conn->prepare("SELECT * FROM tbl_products WHERE prdct_id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $prdct_img = $row['prdct_img'];
+            $product_name = $row['prdct_name'];
+            $price = $row['prdct_price'];
+            $prdct_company = isset($row['prdct_company']) ? $row['prdct_company'] : '';
+            $manf_date = isset($row['manf_date']) ? $row['manf_date'] : '';
+            $exp_date = isset($row['exp_date']) ? $row['exp_date'] : '';
+            $cat_id = isset($row['cat_id']) ? $row['cat_id'] : 0;
+        } else {
+            header('location:index.php');
+            exit();
+        }
+        $stmt->close();
+    }
 } else {
-  $quantity = 1;
+    header('location:index.php');
+    exit();
 }
 
+// Fetch quantity currently in cart
+$quantity = 1;
+if (isset($_SESSION['cart'][$product_id]['quantity'])) {
+    $quantity = (int)$_SESSION['cart'][$product_id]['quantity'];
+}
 
+$category_name = "Healthcare Product";
+if ($cat_id == 1) {
+    $category_name = "Medicine";
+} elseif ($cat_id == 2) {
+    $category_name = "Clinical Device";
+} elseif ($cat_id == 3) {
+    $category_name = "Health Supplement";
+}
+
+$page_title = $product_name;
+include('header.php');
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-
-      .details{
-        font-size:17px;
-        font-family:'poppins';
-        color:green;
-        text-align:center;
-      }
-    .product-container {
-      display: flex;
-      align-items: center;
-      width: 750px;
-      height:400px;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-left:400px;
-      font-family:"poppins";
-    }
-
-    .product-image {
-      margin-right: 20px;
-    }
-
-    .product-details {
-      flex-grow: 2;
-      width:15px;
-    }
-
-    .product-details h2 {
-      margin: 0;
-      font-size: 25px;
-    }
-
-    .product-details p {
-      margin: 5px 0;
-      font-size: 14px;
-      width:100px;
-      
-    }
-
-    .counter {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-      margin-left:150px;
-
-    }
-    .counter label {
-      margin-right: 5px;
-      
-      
-    }
+<main class="content-container" style="min-height: 65vh; padding: 40px 24px;">
     
-
-    /* .counter button {
-      padding: 5px 10px;
-      background-color: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-left: 30px;
-      margin-right:30px;
-      border:2px solid green;
-    } */
-
-
-    .add-to-cart-button1 {
-      padding: 7px 14px;
-      background-color: green;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size:11px;
-      font-family:"poppins";
-      margin-top:500px;
-      
-    }
-    #quantity{
-      font-size:20px;
-      justify-content:center;
-      width: 50%;
-      text-align:center;
-    }
-  </style>
-</head>
-<body>
-
-
-    
-    <?php include('header.php') ?>
-    <div class="main">
-      <h2 class='details'>Details</h2>
-    <div class="product-container">
-    <div class="product-image">
-      <img src="<?php echo "medimg/".$prdct_img; ?>" alt="Product Image" width="200" height="200">
-    </div>
-    <div class="product-details">
-      <h2><?php echo $product_name; ?></h2>
-      <p><?php echo "Rs.".$price; ?></p><br>
-      <p>Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-    </div>
-    <form action="addToCart.php" method='GET'onsubmit="return validateQuantity();">
-        <div class="counter">
-          <label for="quantity">Quantity:</label>
-          
-          <input type="hidden" name='id' value='<?php echo  $product_id ?>'>
-            <input type="number" step='1'  value='<?php echo $quantity; ?>' name="quantity" id="quantity">
-            <p style="color: red;"><?php echo $error_message; ?></p>
-          <button  type ="submit" class="add-to-cart-button1" name="btncart">AddtoCart</button>
+    <div class="product-detail-flex">
+        
+        <!-- Left Side: Product Image -->
+        <div class="product-detail-image-side">
+            <img src="medimg/<?php echo htmlspecialchars($prdct_img, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?>">
         </div>
-  </form>
-  </div>
-  <script>
-        function validateQuantity() {
-            var quantityInput = document.getElementById('quantity');
-            var quantity = quantityInput.value;
+        
+        <!-- Right Side: Details & Buy Info -->
+        <div class="product-detail-info-side">
+            <span class="product-detail-badge"><?php echo htmlspecialchars($category_name, ENT_QUOTES, 'UTF-8'); ?></span>
+            <h1 class="product-detail-title"><?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?></h1>
+            <div class="product-detail-company">Manufacturer: <?php echo !empty($prdct_company) ? htmlspecialchars($prdct_company, ENT_QUOTES, 'UTF-8') : 'Unknown'; ?></div>
+            
+            <div class="product-detail-price">Rs. <?php echo number_format($price, 2); ?></div>
+            
+            <!-- Technical Specs / Product Details -->
+            <div class="product-detail-specs">
+                <div class="spec-row">
+                    <strong>Availability</strong>
+                    <span style="color: var(--success); font-weight: 600;"><i class="bx bx-check-shield"></i> In Stock & Genuine</span>
+                </div>
+                
+                <?php if (!empty($manf_date) && $manf_date !== '0000-00-00'): ?>
+                    <div class="spec-row">
+                        <strong>Mfg. Date</strong>
+                        <span><?php echo date("F d, Y", strtotime($manf_date)); ?></span>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($exp_date) && $exp_date !== '0000-00-00'): ?>
+                    <div class="spec-row">
+                        <strong>Exp. Date</strong>
+                        <span style="color: var(--danger); font-weight: 500;"><?php echo date("F d, Y", strtotime($exp_date)); ?></span>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="spec-row">
+                    <strong>Shipping Details</strong>
+                    <span>Dispatched in 24 hours. Delivery standard terms apply.</span>
+                </div>
+            </div>
+            
+            <!-- Quantity and Add to Cart Form -->
+            <form action="addToCart.php" method="GET" class="product-purchase-form" onsubmit="return validateQuantity();">
+                <input type="hidden" name="id" value="<?php echo $product_id; ?>">
+                
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="quantity" class="qty-label">Qty:</label>
+                    <input type="number" step="1" min="1" value="<?php echo $quantity; ?>" name="quantity" id="quantity" class="qty-number-input">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" name="btncart">
+                    <i class="bx bx-cart-add" style="font-size: 18px;"></i> Add to Cart
+                </button>
+            </form>
+            
+        </div>
+    </div>
+</main>
 
-            if (quantity < 0) {
-                alert('Please enter a valid quantity.');
-                return false;
-            }
+<script>
+function validateQuantity() {
+    var quantityInput = document.getElementById('quantity');
+    var quantity = parseInt(quantityInput.value, 10);
 
-            return true;
-        }
-    </script>
+    if (isNaN(quantity) || quantity <= 0) {
+        alert('Please enter a valid quantity of 1 or more.');
+        return false;
+    }
+    return true;
+}
+</script>
 
-  
-</body>
-</html>
+<?php include('footer.php'); ?>
