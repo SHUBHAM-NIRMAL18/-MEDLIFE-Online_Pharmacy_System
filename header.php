@@ -211,13 +211,14 @@ $active_page = basename($_SERVER['PHP_SELF']);
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Intercept all customer logout links
+        // Intercept all customer logout links (except the confirm link inside the modal)
         var logoutLinks = document.querySelectorAll('a[href="user_logout.php"]');
         var logoutModal = document.getElementById('confirmLogoutModal');
         var cancelLogoutBtn = document.getElementById('btnCancelLogout');
 
         if (logoutModal && cancelLogoutBtn) {
             logoutLinks.forEach(function(link) {
+                if (link.closest('#confirmLogoutModal')) return;
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     logoutModal.classList.add('show');
