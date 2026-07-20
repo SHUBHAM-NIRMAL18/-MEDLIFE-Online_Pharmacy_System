@@ -55,6 +55,8 @@ $active_page = basename($_SERVER['PHP_SELF']);
         </span>
       </div>
       <div class="top-links">
+        <a href="track_order.php" class="top-link"><i class="bx bx-map-pin"></i> Track Order</a>
+        <span class="divider">|</span>
         <a href="admin_login.php" class="top-link"><i class="bx bx-lock-alt"></i> Admin Login</a>
         <span class="divider">|</span>
         <a href="user_dashboard.php" class="top-link"><i class="bx bx-cog"></i> My Account</a>
