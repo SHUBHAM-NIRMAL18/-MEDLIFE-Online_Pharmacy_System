@@ -1,0 +1,322 @@
+/* ==========================================================================
+   Order Tracking & Visual Timeline Stylesheet (track_order.php)
+   ========================================================================== */
+
+/* Tracking Search Card */
+.tracking-search-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 650px;
+  margin: 0 auto 40px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.tracking-search-card h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.tracking-search-card p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.tracking-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.tracking-input-group .form-control {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: monospace;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border-color);
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.tracking-input-group .form-control:focus {
+  border-color: var(--primary);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+  outline: none;
+}
+
+.tracking-input-group .btn {
+  padding: 0 24px;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Timeline Stepper Container */
+.tracking-timeline-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.timeline-header .order-no {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.timeline-header .order-no span {
+  font-family: monospace;
+  color: var(--primary);
+}
+
+.timeline-header .order-date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Stepper Progress Bar */
+.timeline-stepper {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin: 20px 0 10px;
+}
+
+.timeline-stepper::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 40px;
+  right: 40px;
+  height: 3px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.step-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  text-align: center;
+}
+
+.step-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 3px solid #cbd5e1;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.step-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.step-desc {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+/* State: Completed */
+.step-item.completed .step-icon {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border-color: #059669;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.step-item.completed .step-title {
+  color: #0f172a;
+}
+
+/* State: Active */
+.step-item.active .step-icon {
+  background: #ffffff;
+  border-color: #059669;
+  color: #059669;
+  box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.18);
+  animation: pulseActive 2s infinite;
+}
+
+.step-item.active .step-title {
+  color: #059669;
+  font-weight: 700;
+}
+
+@keyframes pulseActive {
+  0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(5, 150, 105, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
+
+/* Stepper Line Progress fill */
+.stepper-progress-line {
+  position: absolute;
+  top: 24px;
+  left: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, #059669, #10b981);
+  z-index: 1;
+  transition: width 0.5s ease;
+}
+
+/* Cancelled State Overlay */
+.cancelled-alert-banner {
+  background: #fef2f2;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.cancelled-alert-banner i {
+  font-size: 24px;
+}
+
+/* Tracking Details Grid */
+.track-summary-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 850px) {
+  .track-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .timeline-stepper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .timeline-stepper::before, .stepper-progress-line {
+    display: none;
+  }
+  .step-item {
+    flex-direction: row;
+    text-align: left;
+    gap: 16px;
+  }
+  .step-icon {
+    margin-bottom: 0;
+  }
+}
+
+.track-info-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.track-info-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.track-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13.5px;
+}
+
+.track-info-item {
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.5;
+}
+
+.track-info-item strong {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.track-info-item span {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Items Table */
+.track-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.track-items-table th {
+  background-color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.track-items-table td {
+  padding: 12px;
+  font-size: 13px;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.track-items-table tr:last-child td {
+  border-bottom: none;
+}
