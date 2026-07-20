@@ -106,7 +106,7 @@
 }
 
 .sidebar-nav-link.logout {
-  color: var(--danger);
+  color: #ef4444;
   margin-top: 10px;
   border-top: 1px solid var(--border-color);
   padding-top: 18px;
@@ -114,8 +114,8 @@
 }
 
 .sidebar-nav-link.logout:hover {
-  background-color: rgba(239, 68, 68, 0.05);
-  color: var(--danger);
+  background-color: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
 }
 
 /* Dashboard Content Area */
