@@ -3,7 +3,7 @@ error_reporting(0);
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require 'vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
 $errors = [];
 $errorMessage = '';
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnFeedback'])) {
 
         $mail = new PHPMailer(true);
         try {
-            // Configure the PHPMailer instance using .env variables
+            // Configure the PHPMailer instance
             $mail->isSMTP();
             $mail->Host = env('MAIL_HOST', 'sandbox.smtp.mailtrap.io');
             $mail->SMTPAuth = true;
@@ -61,11 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnFeedback'])) {
     }
 }
 
-function sanitizeFooterInput($input) {
-    $input = trim($input);
-    $input = stripslashes($input);
-    $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
-    return $input;
+if (!function_exists('sanitizeFooterInput')) {
+    function sanitizeFooterInput($input) {
+        $input = trim($input);
+        $input = stripslashes($input);
+        $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+        return $input;
+    }
 }
 ?>
 
@@ -73,7 +75,42 @@ function sanitizeFooterInput($input) {
   <div class="content-container">
     <div class="footer-grid">
       
-      <!-- Column 1: Feedback Form -->
+      <!-- Column 1: Brand & Contact Info -->
+      <div class="footer-col">
+        <h3>About Medlife</h3>
+        <p>
+          Dedicated to providing you with the highest quality of healthcare service and care. Find genuine medicines, supplements, and clinical devices.
+        </p>
+        <p style="font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <i class="bx bx-phone" style="color: var(--primary); font-size: 16px;"></i> +977 1 5521234
+        </p>
+        <p style="font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <i class="bx bx-envelope" style="color: var(--primary); font-size: 16px;"></i> support@medlife.com
+        </p>
+        
+        <!-- Social Icons -->
+        <div class="footer-social-links">
+          <a href="#" class="social-icon-btn" aria-label="Facebook"><i class="bx bxl-facebook"></i></a>
+          <a href="#" class="social-icon-btn" aria-label="Twitter"><i class="bx bxl-twitter"></i></a>
+          <a href="#" class="social-icon-btn" aria-label="Instagram"><i class="bx bxl-instagram"></i></a>
+          <a href="#" class="social-icon-btn" aria-label="LinkedIn"><i class="bx bxl-linkedin"></i></a>
+        </div>
+      </div>
+
+      <!-- Column 2: Quick Links -->
+      <div class="footer-col">
+        <h3>Quick Links</h3>
+        <ul class="footer-links-list">
+          <li><a href="index.php"><i class="bx bx-chevron-right"></i> Home</a></li>
+          <li><a href="u_medicines.php"><i class="bx bx-chevron-right"></i> Medicines</a></li>
+          <li><a href="u_supplements.php"><i class="bx bx-chevron-right"></i> Supplements</a></li>
+          <li><a href="u_devices.php"><i class="bx bx-chevron-right"></i> Devices</a></li>
+          <li><a href="admin_login.php"><i class="bx bx-chevron-right"></i> Admin Login</a></li>
+          <li><a href="user_dashboard.php"><i class="bx bx-chevron-right"></i> My Account</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Feedback Form -->
       <div class="footer-col">
         <h3>Feedback Form</h3>
         <form action="" method="post" id="contact-form" class="footer-feedback-form">
@@ -92,22 +129,11 @@ function sanitizeFooterInput($input) {
             <textarea name="message" placeholder="Your Message" required><?php echo isset($_POST['message']) ? htmlspecialchars($_POST['message'], ENT_QUOTES) : ''; ?></textarea>
           </div>
           
-          <button type="submit" name="btnFeedback" class="btn btn-secondary">Submit Feedback</button>
+          <button type="submit" name="btnFeedback" class="btn btn-secondary" style="width: 100%;">Submit Feedback</button>
         </form>
       </div>
 
-      <!-- Column 2: Information -->
-      <div class="footer-col" style="text-align: center;">
-        <h3>Information</h3>
-        <p style="margin-top: 10px;">
-          Our team of licensed pharmacists and healthcare professionals are dedicated to providing you with the highest quality of service and care. 
-        </p>
-        <p>
-          Whether you have questions about your medication or need help finding the right product for your healthcare needs, we're here to help you 24/7.
-        </p>
-      </div>
-
-      <!-- Column 3: Location Map -->
+      <!-- Column 4: Location Map -->
       <div class="footer-col">
         <h3>Location</h3>
         <div class="map-container">
