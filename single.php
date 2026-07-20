@@ -61,14 +61,30 @@ include('header.php');
         
         <!-- Left Side: Product Image -->
         <div class="product-detail-image-side">
+            <div class="product-badge-bar" style="top: 16px; left: 16px; right: 16px;">
+                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
+                    <i class="bx bx-heart"></i>
+                </button>
+            </div>
             <img src="medimg/<?php echo htmlspecialchars($prdct_img, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?>">
         </div>
         
         <!-- Right Side: Details & Buy Info -->
         <div class="product-detail-info-side">
-            <span class="product-detail-badge"><?php echo htmlspecialchars($category_name, ENT_QUOTES, 'UTF-8'); ?></span>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span class="product-detail-badge"><?php echo htmlspecialchars($category_name, ENT_QUOTES, 'UTF-8'); ?></span>
+                <div class="product-rating" style="font-size: 14px;">
+                    <i class="bx bxs-star"></i>
+                    <i class="bx bxs-star"></i>
+                    <i class="bx bxs-star"></i>
+                    <i class="bx bxs-star"></i>
+                    <i class="bx bxs-star-half"></i>
+                    <span style="font-size: 12px; font-weight: 600;">4.8 (120+ Reviews)</span>
+                </div>
+            </div>
             <h1 class="product-detail-title"><?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?></h1>
-            <div class="product-detail-company">Manufacturer: <?php echo !empty($prdct_company) ? htmlspecialchars($prdct_company, ENT_QUOTES, 'UTF-8') : 'Unknown'; ?></div>
+            <div class="product-detail-company">Manufacturer: <?php echo !empty($prdct_company) ? htmlspecialchars($prdct_company, ENT_QUOTES, 'UTF-8') : 'Medlife Care'; ?></div>
             
             <div class="product-detail-price">Rs. <?php echo number_format($price, 2); ?></div>
             
