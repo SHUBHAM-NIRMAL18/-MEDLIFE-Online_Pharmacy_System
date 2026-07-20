@@ -3,16 +3,11 @@ require_once 'config.php';
 $conn = get_db_connection();
 $sql = 'SELECT * FROM tbl_products WHERE cat_id=2';
 $devices = $conn->query($sql);
+
+$page_title = "Devices";
+$page_css = "css/products.css";
+include('header.php');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Devices - Medlife</title>
-</head>
-<body>
-<?php include('header.php') ?>
 
 <main class="content-container" style="padding: 40px 24px; min-height: 60vh;">
     <h2 class="section-title">Devices</h2>

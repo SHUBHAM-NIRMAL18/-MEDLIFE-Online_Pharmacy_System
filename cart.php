@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $page_title = "Shopping Cart";
+$page_css = "css/cart.css";
 include('header.php');
 ?>
 

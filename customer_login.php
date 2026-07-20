@@ -67,6 +67,7 @@ if (isset($_POST['btnlogin'])) {
 } 
 
 $page_title = "Login";
+$page_css = "css/register.css";
 include('header.php');
 ?>
 

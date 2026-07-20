@@ -28,8 +28,13 @@ $active_page = basename($_SERVER['PHP_SELF']);
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
   
-  <!-- Global Stylesheet -->
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="css/global.css?v=<?php echo time(); ?>">
+  <link rel="stylesheet" href="css/header.css?v=<?php echo time(); ?>">
+  <link rel="stylesheet" href="css/footer.css?v=<?php echo time(); ?>">
+  <?php if (isset($page_css)): ?>
+      <link rel="stylesheet" href="<?php echo htmlspecialchars($page_css, ENT_QUOTES, 'UTF-8'); ?>?v=<?php echo time(); ?>">
+  <?php endif; ?>
 </head>
 <body>
 <div class="site-wrapper">

@@ -69,6 +69,7 @@ if (isset($_POST['btnRegister'])){
   }
 }
 $page_title = "Signup";
+$page_css = "css/register.css";
 include('header.php');
 ?>
 

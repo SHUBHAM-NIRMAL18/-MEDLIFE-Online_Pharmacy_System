@@ -51,6 +51,7 @@ if ($cat_id == 1) {
 }
 
 $page_title = $product_name;
+$page_css = "css/products.css";
 include('header.php');
 ?>
 

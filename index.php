@@ -14,6 +14,7 @@ $supplements = $conn->query('SELECT * FROM tbl_products WHERE cat_id=3 LIMIT 5')
 $devices = $conn->query('SELECT * FROM tbl_products WHERE cat_id=2 LIMIT 5');
 
 $page_title = "Home";
+$page_css = "css/index.css";
 include('header.php');
 ?>
 
