@@ -1,211 +1,377 @@
-
-
 <?php 
-
 require_once 'config.php';
-ob_start();
-require_once 'dashboard.php';
+include_once 'dashboard.php';
 
-if(is_numeric($_GET['prdct_id'])){
-  $id = $_GET['prdct_id'];
-  }else{
-    header("Location:view_products.php?msg=1");
-  }
-
-
-if (isset($_POST['btnUpdate'])) {
-    $categories = [];
-   
-  
-  
-    $prdct_name = $_POST['prdct_name'];
-    $prdct_price = $_POST['prdct_price'];
-    $prdct_company = $_POST['prdct_company'];
-    $manf_date = $_POST['manf_date'];
-    $exp_date = $_POST['exp_date'];
-    $cat_id = $_POST['cat_id'];
-    $old_image = $_POST['old_image'];
-    if ($_FILES['new_image']['name']){
-      $image = $_FILES['new_image']['name'];
-      $temp_name = $_FILES['new_image']['tmp_name'];
-      $target_path = "medimg/";
-      $target_path = $target_path . basename($image);
-      move_uploaded_file($temp_name, $target_path);
-    } else{
-      $image = $old_image;
-    }
-    
- 
-
- 
-
- 
-
- 
-    try{
-      $conn = get_db_connection();
-      
-
-     
-        $sql = "update tbl_products set prdct_name='$prdct_name',prdct_price='$prdct_price',prdct_company='$prdct_company',manf_date='$manf_date',exp_date='$exp_date',cat_id='$cat_id',prdct_img='$image'  where prdct_id=$id";
-      
-
-
-      $conn->query($sql);
-      if ($conn->affected_rows == 1) {
-       $sucess= "Product updated success";
-      }
-    }
-    catch(Exception $e){
-       die('Database  Error : ' .$e->getMessage());
-    }
- 
-}?>
-<?php
-
-try{
-  $conn = get_db_connection();
-  
-  $sql = "SELECT tbl_products.*, tbl_categories.cat_name FROM tbl_products, tbl_categories WHERE tbl_products.cat_id = tbl_categories.cat_id and prdct_id=$id";
-  $res = $conn->query($sql);
-  if ($res->num_rows == 1) {
-    $categories = $res->fetch_assoc();
-   
-    
-  } else {
-    $categories = [];
-  }
+if (!isset($_GET['prdct_id']) || !is_numeric($_GET['prdct_id'])) {
+    header("Location: view_products.php?msg=1");
+    exit();
 }
-catch(Exception $e){
-   die('Database  Error : ' .$e->getMessage());
+
+$id = (int)$_GET['prdct_id'];
+$err = [];
+$conn = get_db_connection();
+
+// Process Product Update
+if (isset($_POST['btnUpdate'])) {
+    $prdct_name = isset($_POST['prdct_name']) ? trim($_POST['prdct_name']) : '';
+    $prdct_company = isset($_POST['prdct_company']) ? trim($_POST['prdct_company']) : '';
+    $prdct_price = isset($_POST['prdct_price']) ? (float)$_POST['prdct_price'] : 0;
+    $manf_date = isset($_POST['manf_date']) ? trim($_POST['manf_date']) : '';
+    $exp_date = isset($_POST['exp_date']) ? trim($_POST['exp_date']) : '';
+    $cat_id = isset($_POST['cat_id']) ? (int)$_POST['cat_id'] : 0;
+    $old_image = isset($_POST['old_image']) ? trim($_POST['old_image']) : '';
+
+    if (empty($prdct_name)) {
+        $err['prdct_name'] = 'Please enter the product name';
+    }
+    if (empty($prdct_company)) {
+        $err['prdct_company'] = 'Please enter the manufacturer/company';
+    }
+    if ($prdct_price <= 0) {
+        $err['prdct_price'] = 'Please enter a valid price greater than 0';
+    }
+    if (empty($manf_date)) {
+        $err['manf_date'] = 'Please select manufactured date';
+    }
+    if (empty($exp_date)) {
+        $err['exp_date'] = 'Please select expiry date';
+    }
+    if ($cat_id <= 0) {
+        $err['cat_id'] = 'Please select a category';
+    }
+
+    // New Image Upload Check
+    $image_filename = $old_image;
+    if (isset($_FILES['new_image']) && !empty($_FILES['new_image']['name'])) {
+        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        $file_type = $_FILES['new_image']['type'];
+
+        if (in_array(strtolower($file_type), $allowed_types)) {
+            $raw_name = basename($_FILES['new_image']['name']);
+            $ext = pathinfo($raw_name, PATHINFO_EXTENSION);
+            $image_filename = 'prod_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+
+            $target_dir = "medimg/";
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+            $target_path = $target_dir . $image_filename;
+
+            if (!move_uploaded_file($_FILES['new_image']['tmp_name'], $target_path)) {
+                $err['image'] = 'Failed to upload new image file.';
+            }
+        } else {
+            $err['image'] = 'Invalid image format. Allowed: JPG, PNG, WEBP';
+        }
+    }
+
+    if (count($err) === 0) {
+        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ? WHERE prdct_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("ssdssisi", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $id);
+            $stmt->execute();
+            $stmt->close();
+            header("Location: view_products.php?updated=1");
+            exit();
+        } else {
+            $err['general'] = "Failed to prepare database update statement.";
+        }
+    }
+}
+
+// Fetch Product Details
+$product = null;
+$stmt = $conn->prepare("SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id WHERE p.prdct_id = ?");
+if ($stmt) {
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res && $res->num_rows === 1) {
+        $product = $res->fetch_assoc();
+    }
+    $stmt->close();
+}
+
+if (!$product) {
+    header("Location: view_products.php?msg=1");
+    exit();
+}
+
+// Fetch Categories List
+$categories = [];
+$cat_res = $conn->query("SELECT * FROM tbl_categories ORDER BY cat_name ASC");
+if ($cat_res && $cat_res->num_rows > 0) {
+    while ($row = $cat_res->fetch_assoc()) {
+        $categories[] = $row;
+    }
 }
 ?>
-<?php 
-$con = get_db_connection();
-$sqli = "select * from tbl_categories";
-$result = $con->query($sqli);
-if ($result->num_rows == 1) {
-  $row = $result->fetch_assoc();
-    
-  
-}?>
 
- 
-  <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Update Products</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Include Dedicated Product CSS -->
+<link rel="stylesheet" href="css/product.css">
 
-    <style>
-        body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100px;
-      font-family: "Poppins", sans-serif;
-      margin-top:300px;
-    }
+<div class="admin-page-wrapper">
 
-    form {
-      width: 400px;
-      padding: 10px;
-      background-color: #f5f5f5;
-      border-radius: 5px;
-      margin-top:80px;
-      margin-left:80px;
-      font-size:12px;
-    }
+    <!-- Breadcrumb Navigation -->
+    <nav class="admin-breadcrumb" aria-label="breadcrumb">
+        <a href="admin_home.php" class="breadcrumb-item">
+            <i class="bx bx-home-alt"></i> Dashboard
+        </a>
+        <span class="breadcrumb-separator"><i class="bx bx-chevron-right"></i></span>
+        <span class="breadcrumb-item">Catalog</span>
+        <span class="breadcrumb-separator"><i class="bx bx-chevron-right"></i></span>
+        <a href="view_products.php" class="breadcrumb-item">Products</a>
+        <span class="breadcrumb-separator"><i class="bx bx-chevron-right"></i></span>
+        <span class="breadcrumb-item active">Edit Product</span>
+    </nav>
 
-    input[type="text"], input[type="date"]{
-      width: 95%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-family: "Poppins";
-    }
-    select{
-        width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-family: "Poppins";
-    }
-
-    input[type="submit"] {
-      width: 100%;
-      padding: 10px;
-      background-color: green;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-family: "Poppins", sans-serif;
-    }
-
-    input[type="submit"]:hover {
-      background-color: darkgreen;
-    }
-    .prdt{
-      padding-bottom:500px;
-    }
-  </style>
-</head>
-<body>
-<?php if (!empty($categories)){ ?>
-<a class='prdt'href="view_products.php">View Products</a>
-<form action="<?php echo $_SERVER['PHP_SELF'] ?>?prdct_id=<?php echo $id ?>" method="post" enctype="multipart/form-data">
-<?php if(isset($sucess)){?>
-          <span class="sucess" style="color:green;">
-          <?php echo $sucess;?>
-          </span>
-        <?php }?><br>
-  <div class="control">
-    Product Name<input type="text" name="prdct_name"  value="<?php echo $categories['prdct_name']?>" />
-  </div>
-  <div class="control">
-    <label for="prdct_price">Product Price</label>
-    <input type="text" name="prdct_price"  value="<?php echo $categories['prdct_price']?>" />
-  </div>
-  <div class="control">
-    <label for="prdct_company">Product Company</label>
-    <input type="text" name="prdct_company"  value="<?php echo $categories['prdct_company']?>" />
-  </div>
-  <div class="control">
-    <label for="manf_date">Manufacturing Date</label>
-    <input type="date" name="manf_date"  value="<?php echo $categories['manf_date']?>" />
-  </div>
-  <div class="control">
-    <label for="exp_date">Expiration Date</label>
-    <input type="date" name="exp_date"  value="<?php echo $categories['exp_date']?>" />
-  </div>
-  <div class="control">
-    <label for="cat_id">Categories</label>
-    <input type="hidden" name="cat_id" value="<?php  echo $categories['cat_name']?>"  />
-    <select name="cat_id">
-      <option value="<?php  echo $categories['cat_id']?>" selected ><?php  echo $categories['cat_name']?></option>
-      <?php while ($row = $result->fetch_assoc()) { ?>
-        <option value="<?php echo $row['cat_id']?>"><?php echo $row['cat_name']?></option>
-        <?php }?>
-    </select>
-    
-    
+    <!-- Page Header -->
+    <div class="product-page-header">
+        <div>
+            <h1><i class="bx bx-edit" style="color: var(--admin-accent, #059669);"></i> Edit Product</h1>
+            <p>Update specifications, pricing, and packaging image for Product #<?php echo $id; ?>.</p>
+        </div>
+        <a href="view_products.php" class="btn-secondary">
+            <i class="bx bx-arrow-back"></i> Back to Products
+        </a>
     </div>
-  <div class="control">
-    <label for="prdct_img">Update Product Image</label><br>
-    
-    <input type="hidden" name="old_image" value="<?php echo $categories['prdct_img']?>"><br>
-    <img src="medimg/<?php echo $categories['prdct_img'];?>" alt="" style="width:80px;height:60px"><input type="file" name="new_image" id="image">
-  </div><br/>
- 
-  <div class="control">
-    <input type="submit" name="btnUpdate" value="Update" />
-  </div>
-</form>
-<?php } else{ echo "<span style='font-size:20px; color:red;'>No Record Find</span>"; }?>
-</body>
-</html>
+
+    <!-- Main 2-Column Grid -->
+    <div class="product-grid">
+
+        <!-- Left Column: Form Card -->
+        <div class="product-card">
+            <div class="product-card-header">
+                <h3><i class="bx bx-edit-alt"></i> Update Product Specifications</h3>
+            </div>
+
+            <?php if (isset($err['general'])): ?>
+                <div class="alert-banner error">
+                    <i class="bx bx-error-circle"></i>
+                    <span><?php echo htmlspecialchars($err['general'], ENT_QUOTES, 'UTF-8'); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <form action="edit_products.php?prdct_id=<?php echo $id; ?>" method="POST" enctype="multipart/form-data" autocomplete="off">
+                <input type="hidden" name="old_image" value="<?php echo htmlspecialchars($product['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>">
+
+                <!-- Product Name -->
+                <div class="form-group">
+                    <label for="prdct_name" class="form-label">
+                        Product Name <span class="required">*</span>
+                    </label>
+                    <div class="input-icon-wrapper">
+                        <i class="bx bx-capsule"></i>
+                        <input type="text" 
+                               id="prdct_name" 
+                               name="prdct_name" 
+                               class="form-control" 
+                               value="<?php echo htmlspecialchars($product['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>"
+                               required>
+                    </div>
+                    <?php if (isset($err['prdct_name'])): ?>
+                        <div class="field-error">
+                            <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Company & Category (Row) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="prdct_company" class="form-label">
+                            Manufacturer / Company <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-building"></i>
+                            <input type="text" 
+                                   id="prdct_company" 
+                                   name="prdct_company" 
+                                   class="form-control" 
+                                   value="<?php echo htmlspecialchars($product['prdct_company'], ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
+                        </div>
+                        <?php if (isset($err['prdct_company'])): ?>
+                            <div class="field-error">
+                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['prdct_company'], ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cat_id" class="form-label">
+                            Category Type <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-category"></i>
+                            <select id="cat_id" name="cat_id" class="form-select" required>
+                                <option value="" disabled>Select Category</option>
+                                <?php foreach ($categories as $c): ?>
+                                    <option value="<?php echo $c['cat_id']; ?>" <?php echo $product['cat_id'] == $c['cat_id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($c['cat_name'], ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php if (isset($err['cat_id'])): ?>
+                            <div class="field-error">
+                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['cat_id'], ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Price, Manufacture Date & Expiry Date (Row) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="prdct_price" class="form-label">
+                            Price (Rs.) <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-purchase-tag"></i>
+                            <input type="number" 
+                                   step="0.01" 
+                                   min="0.01" 
+                                   id="prdct_price" 
+                                   name="prdct_price" 
+                                   class="form-control" 
+                                   value="<?php echo htmlspecialchars($product['prdct_price'], ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
+                        </div>
+                        <?php if (isset($err['prdct_price'])): ?>
+                            <div class="field-error">
+                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['prdct_price'], ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manf_date" class="form-label">
+                            Manufactured Date <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-calendar"></i>
+                            <input type="date" 
+                                   id="manf_date" 
+                                   name="manf_date" 
+                                   class="form-control" 
+                                   value="<?php echo htmlspecialchars($product['manf_date'], ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
+                        </div>
+                        <?php if (isset($err['manf_date'])): ?>
+                            <div class="field-error">
+                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['manf_date'], ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Expiry Date & Change Image File (Row) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="exp_date" class="form-label">
+                            Expiry Date <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-calendar-event"></i>
+                            <input type="date" 
+                                   id="exp_date" 
+                                   name="exp_date" 
+                                   class="form-control" 
+                                   value="<?php echo htmlspecialchars($product['exp_date'], ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
+                        </div>
+                        <?php if (isset($err['exp_date'])): ?>
+                            <div class="field-error">
+                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['exp_date'], ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Replace Product Image (Optional)
+                        </label>
+                        <div class="file-upload-box">
+                            <i class="bx bx-cloud-upload file-upload-icon"></i>
+                            <div class="file-upload-text" id="fileNameDisplay">Choose New Image</div>
+                            <div class="file-upload-hint">Leave blank to keep existing image</div>
+                            <input type="file" 
+                                   name="new_image" 
+                                   id="newImageInput" 
+                                   accept="image/*"
+                                   onchange="updateFileName(this)">
+                        </div>
+                        <?php if (isset($err['image'])): ?>
+                            <div class="field-error">
+                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['image'], ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" name="btnUpdate" class="btn-submit">
+                        <i class="bx bx-check-circle"></i> Save Changes
+                    </button>
+                    <a href="view_products.php" class="btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Right Column: Current Image Preview & Info -->
+        <div class="product-card product-tips-card">
+            <h4><i class="bx bx-image"></i> Current Product Image</h4>
+            
+            <div class="img-preview-card">
+                <?php 
+                $curr_img = !empty($product['prdct_img']) && file_exists('medimg/' . $product['prdct_img'])
+                    ? 'medimg/' . htmlspecialchars($product['prdct_img'], ENT_QUOTES, 'UTF-8')
+                    : 'medimg/default.png';
+                ?>
+                <img src="<?php echo $curr_img; ?>" 
+                     alt="Current Product Image" 
+                     class="img-preview-thumb">
+                <div style="font-size: 13px; font-weight: 600; color: #0f172a;">
+                    <?php echo htmlspecialchars($product['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                    Price: <strong>Rs. <?php echo number_format($product['prdct_price'], 2); ?></strong>
+                </div>
+            </div>
+
+            <ul class="tips-list">
+                <li>
+                    <i class="bx bx-check-shield"></i>
+                    <div>
+                        <strong>Product ID:</strong> #<?php echo $id; ?>
+                    </div>
+                </li>
+                <li>
+                    <i class="bx bx-check-shield"></i>
+                    <div>
+                        <strong>Current Category:</strong> 
+                        <span class="category-tag"><?php echo htmlspecialchars($product['cat_name'] ?? 'Uncategorized', ENT_QUOTES, 'UTF-8'); ?></span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function updateFileName(input) {
+        var display = document.getElementById('fileNameDisplay');
+        if (input.files && input.files[0]) {
+            display.textContent = input.files[0].name;
+        } else {
+            display.textContent = 'Choose New Image';
+        }
+    }
+</script>
