@@ -75,7 +75,6 @@ include('header.php');
                         <table class="dashboard-table">
                             <thead>
                                 <tr>
-                                    <th>Order ID</th>
                                     <th>Tracking No</th>
                                     <th>Date</th>
                                     <th>Total Price</th>
@@ -85,7 +84,6 @@ include('header.php');
                             <tbody>
                                 <?php while ($items = $order_run->fetch_assoc()): ?>
                                     <tr>
-                                        <td>#<?php echo $items['order_id']; ?></td>
                                         <td style="font-family: monospace; font-weight: 500;"><?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo date("M d, Y", strtotime($items['created_at'])); ?></td>
                                         <td style="font-weight: 600; color: var(--text-main);">Rs. <?php echo number_format($items['total'], 2); ?></td>
