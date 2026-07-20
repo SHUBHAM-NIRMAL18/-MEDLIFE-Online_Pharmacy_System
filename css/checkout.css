@@ -4,8 +4,8 @@
 
 .cart-flex-container {
   display: flex;
-  gap: 30px;
-  margin: 40px 0;
+  gap: 20px;
+  margin: 16px 0;
   align-items: flex-start;
 }
 
@@ -24,14 +24,14 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  padding: 35px;
+  padding: 24px;
 }
 
 .checkout-form-section h2 {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--text-main);
-  margin-bottom: 24px;
-  padding-bottom: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -41,36 +41,36 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  padding: 24px;
+  padding: 20px;
 }
 
 .cart-summary-section h3 {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--text-main);
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
 
 /* Form Groups & Inputs */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .form-group label {
   display: block;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-main);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .form-control {
   width: 100%;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--text-main);
   background-color: #ffffff;
   transition: var(--transition);
