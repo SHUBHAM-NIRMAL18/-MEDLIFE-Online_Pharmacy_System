@@ -1,116 +1,99 @@
-
-<?php error_reporting(0); ?>
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Enter OTP</title>
-  <style>
-   
-
-    .otp {
-        margin-left:600px;
-        /* margin-top:180px; */
-    
-      width: 300px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      font-family:"poppins";
-    }
-
-    .otp h2 {
-      margin-top: 0;
-      text-align: center;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    .form-group input {
-      width: 90%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-
-    .btn-send-otp {
-      width: 100%;
-      padding: 10px;
-      background-color: #4CAF50;
-      color: #fff;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      font-weight: bold;
-      font-family:"poppins";
-    }
-
-    .btn-send-otp:hover {
-      background-color: #45a049;
-    }
-  </style>
-</head>
-
-<?php
-session_start();
-
-if(isset($_POST['btnOTP'])){
-$err= [];
-if(isset($_POST['otp']) && !empty($_POST['otp'])){
-    $otp = $_POST['otp'];
-}
-else{
-    $err['otp']="Enter OTP";
+<?php 
+require_once 'config.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-if(isset($_SESSION['user_email'])){
-    $email= $_SESSION['user_email'];
-}
-if(count($err)== 0){
+$otp = '';
+$err = [];
+$email = isset($_SESSION['user_email']) ? $_SESSION['user_email'] : '';
 
-
-
-$con=mysqli_connect('localhost','root','','medlife');
-$res=mysqli_query($con,"select * from tbl_user where email='$email' and otp='$otp'");
-$count=mysqli_num_rows($res);
-if($count>0){
-	mysqli_query($con,"update tbl_user set otp='' where email='$email'");
-	    $_SESSION['IS_LOGIN']=$email;
-	    echo "<script>alert('Correct OTP');</script>";
-        echo  "<script type='text/javascript'>";
-        echo "window.location.href='reset_password.php'"; 
-        echo "</script>";
-}
-else{
-	$err['otp'] = "Incorrect OTP ";
-}
+if (empty($email)) {
+    header('location:forget_password.php');
+    exit();
 }
 
+if (isset($_POST['btnOTP'])) {
+    if (isset($_POST['otp']) && !empty($_POST['otp']) && trim($_POST['otp'])) {
+        $otp = trim($_POST['otp']);
+    } else {
+        $err['otp'] = "Verification code is required.";
+    }
+
+    if (count($err) == 0) {
+        try {
+            $conn = get_db_connection();
+            $stmt = $conn->prepare("SELECT * FROM tbl_user WHERE email = ? AND otp = ?");
+            if ($stmt) {
+                $stmt->bind_param("ss", $email, $otp);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                
+                if ($res && $res->num_rows > 0) {
+                    // Reset the user's OTP code in the database
+                    $update_stmt = $conn->prepare("UPDATE tbl_user SET otp = '' WHERE email = ?");
+                    if ($update_stmt) {
+                        $update_stmt->bind_param("s", $email);
+                        $update_stmt->execute();
+                        $update_stmt->close();
+                    }
+                    
+                    $_SESSION['IS_LOGIN'] = $email;
+                    
+                    $_SESSION['toast'] = [
+                        'type' => 'success',
+                        'title' => 'Code Verified',
+                        'message' => 'Verification code confirmed. Choose a new secure password.'
+                    ];
+                    
+                    header('location:reset_password.php');
+                    exit();
+                } else {
+                    $err['otp'] = "Incorrect verification code. Please check and try again.";
+                }
+                $stmt->close();
+            }
+        } catch (Exception $e) {
+            $err['otp'] = "Database verification error: " . $e->getMessage();
+        }
+    }
 }
+
+$page_title = "Verify OTP";
+$page_css = "css/register.css";
+include('header.php');
 ?>
-<body>
-<a href="index.php"><img src="logo/MEDLOGO.png" width="10%" height="50%" style="margin-left:700px;margin-top:180px;"alt=""></a> 
-  <div class="otp">
-    <h2>Enter OTP</h2><br>
-    <form method='post'>
-      <div class="form-group">
-        <label for="otp">OTP Here:</label>
-        <span style="color:green;font-size:15px"><?php if(isset($message)){echo $message ;}?></span>
-        <input type="text" id="otp" name="otp" placeholder="Enter OTP Here">
-        <div style="color:red;font-size:15px"><?php echo (isset($err['otp'])?$err['otp']:'');?></div>
+
+<main class="auth-wrapper" style="padding: 40px 0;">
+  <div class="content-container" style="display: flex; justify-content: center;">
+    <div class="auth-card" style="max-width: 500px; min-height: auto;">
+      
+      <div class="auth-form-side" style="padding: 40px;">
+        <h2>Verify Code</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px; margin-top: -12px;">
+            We have sent a verification code to <strong style="color: var(--text-main);"><?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?></strong>. Enter it below to verify.
+        </p>
+
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>" novalidate>
+          <div class="form-group">
+            <label for="otp">Verification Code (OTP)</label>
+            <input type="text" id="otp" name="otp" class="form-control" placeholder="Enter 5-digit code" required value="<?php echo htmlspecialchars($otp, ENT_QUOTES, 'UTF-8'); ?>">
+            <?php if (isset($err['otp'])): ?>
+                <span class="error-text"><?php echo $err['otp']; ?></span>
+            <?php endif; ?>
+          </div>
+          
+          <div class="auth-actions">
+            <button class="btn btn-primary" name="btnOTP" type="submit" style="width: 100%; height: 42px; font-weight: 600;">
+                <i class="bx bx-shield-quarter" style="font-size: 16px;"></i> Verify Code
+            </button>
+            <a href="forget_password.php" class="auth-link">Didn't receive code? Resend Email</a>
+          </div>
+        </form>
       </div>
-      <button class="btn-send-otp" name="btnOTP" type="submit">Submit</button>
-    </form>
+
+    </div>
   </div>
-</body>
-</html>
+</main>
+
+<?php include('footer.php'); ?>
