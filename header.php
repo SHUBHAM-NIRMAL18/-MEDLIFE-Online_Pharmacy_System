@@ -1,160 +1,92 @@
-<?php error_reporting(0); ?>
-<?php session_start(); ?>
+<?php
+error_reporting(0);
+require_once 'config.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
+// Calculate total cart items
+$cart_count = 0;
+if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $item) {
+        $cart_count += isset($item['quantity']) ? (int)$item['quantity'] : 0;
+    }
+}
+
+// Determine active page
+$active_page = basename($_SERVER['PHP_SELF']);
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Sans Serif Collection:wght@400&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Sansation:wght@700&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Sansation Light:wght@300&display=swap"
-    />
-    <link 
-    rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-  <style>
-    *{
-        margin:0px;
-        padding:0px;
-    }
-    
-    .container {
-      background-color: green;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .icons {
-      display: flex;
-      justify-content: flex-start;
-      align-items: right;
-      color:yellow;
-    }
-
-    .contact {
-      text-align: right;
-      color: yellow;
-      font-family:"Poppins";
-      font-size:12px;
-    }
-
-    .icon {
-      width: 25px;
-      height: 25px;
-      margin-right: 10px;
-    }
-    .header {
-      
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      margin-right: 20px;
-    }
-
-    .logo img {
-      width: 190px;
-      height: auto;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      font-family:"Poppins";
-      font-size:14px;
-      
-    }
-
-    .nav-item {
-      margin-right: 10px;
-      text-decoration:none;
-    }
-
-    .button {
-      display: inline-block;
-      padding: 5px 10px;
-      background-color: green;
-      color: white;
-      text-decoration: none;
-      border-radius: 0px;
-    }
-
-    .cart-icon {
-      width: 25px;
-      height: 25px;
-      margin-left: 10px;
-    }
-
-    .cart-container {
-      background-color: green;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?php echo isset($page_title) ? $page_title . " - Medlife" : "Medlife - Convenient & Reliable Healthcare"; ?></title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
+  
+  <!-- Global Stylesheet -->
+  <link rel="stylesheet" href="css/global.css">
+</head>
 <body>
-    <div class="main">
-  <div class="container">
-    <div class="icons">
-        <p >
-        <?php 
-      if(isset($_SESSION['email']))
-      { 
-        echo "Welcome"." ". $_SESSION['name'];
-        }
-        else
-        {
-          echo "Welcome Guest";
-          } ?>
-        </p>
+<div class="site-wrapper">
+  
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="content-container top-bar-container">
+      <div class="welcome-msg">
+        <i class="bx bx-user-circle"></i>
+        <span>
+          <?php 
+          if (isset($_SESSION['email'])) { 
+              echo "Welcome, <strong>" . htmlspecialchars($_SESSION['name'], ENT_QUOTES, 'UTF-8') . "</strong>";
+          } else {
+              echo "Welcome, <strong>Guest</strong>";
+          } 
+          ?>
+        </span>
+      </div>
+      <div class="top-links">
+        <a href="admin_login.php" class="top-link"><i class="bx bx-lock-alt"></i> Admin Login</a>
+        <span class="divider">|</span>
+        <a href="user_dashboard.php" class="top-link"><i class="bx bx-cog"></i> My Account</a>
+      </div>
     </div>
-    <div class="contact">
-    <a href="admin_login.php" style="color:yellow ; text-decoration:none; ">Admin Login |</a>
-    <a href="user_dashboard.php" style="color:yellow ; text-decoration:none">My Account</a>
-    </div>
-    
   </div>
 
-
-  <div class="header">
-    <div class="logo">
-      <a href="index.php"><img src="logo/MEDLOGO.png" alt="Logo"></img></a>
+  <!-- Main Navigation Header -->
+  <header class="site-header">
+    <div class="content-container header-container">
+      <a href="index.php" class="logo-link">
+        <img src="logo/MEDLOGO.png" alt="Medlife Logo">
+      </a>
+      
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="index.php" class="nav-link <?php echo ($active_page == 'index.php') ? 'active' : ''; ?>">HOME</a></li>
+          <li><a href="u_medicines.php" class="nav-link <?php echo ($active_page == 'u_medicines.php') ? 'active' : ''; ?>">MEDICINES</a></li>
+          <li><a href="u_supplements.php" class="nav-link <?php echo ($active_page == 'u_supplements.php') ? 'active' : ''; ?>">SUPPLEMENTS</a></li>
+          <li><a href="u_devices.php" class="nav-link <?php echo ($active_page == 'u_devices.php') ? 'active' : ''; ?>">DEVICES</a></li>
+        </ul>
+      </nav>
+      
+      <div class="nav-actions">
+        <?php if (!isset($_SESSION['email'])): ?>
+            <a href="customer_login.php" class="btn btn-outline">LOGIN</a>
+            <a href="customer_register.php" class="btn btn-primary">SIGNUP</a>
+        <?php else: ?>
+            <a href="user_logout.php" class="btn btn-outline">LOGOUT</a>
+        <?php endif; ?>
+        
+        <a href="cart.php" class="cart-icon-btn" title="View Cart">
+          <i class="bx bx-cart"></i>
+          <?php if ($cart_count > 0): ?>
+              <span class="cart-badge"><?php echo $cart_count; ?></span>
+          <?php endif; ?>
+        </a>
+      </div>
     </div>
-    <div class="nav">
-      <div class="nav-item"><a href="index.php" style="color:black ; text-decoration:none">HOME</a></div>
-      <div class="nav-item"><a href="u_medicines.php" style="color:black ; text-decoration:none">MEDICINES</a></div>
-      <div class="nav-item"><a href="u_supplements.php"style="color:black ; text-decoration:none">SUPPLEMENTS</a></div>
-      <div class="nav-item"><a href="u_devices.php"style="color:black ; text-decoration:none">DEVICES</a></div>
-      <div class="nav-item"><?php 
-      if(!isset($_SESSION['email']))
-      { 
-        echo "<a href='customer_login.php' class='button'>LOGIN</a>";
-        }
-        else
-        {
-          echo "<a href='user_logout.php' class='button'>LOGOUT</a>";
-          } ?>
-          </div>
-      <div class="nav-item"><a href="customer_register.php" class="button">SIGNUP</a></div>
-      <div class="nav-item"><a href="cart.php" class="button"><i class="bx bx-cart-add"></i></a></div>
-    </div>
-  </div><hr>
-  
+  </header>
