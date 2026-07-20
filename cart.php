@@ -1,157 +1,107 @@
 <?php 
-    
-    
 require_once 'config.php';
-session_start();
-    if(isset($_SESSION['cart'])){
-    $cart =  $_SESSION['cart'];
-    }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+$page_title = "Shopping Cart";
+include('header.php');
 ?>
 
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart</title>
-    <style>
-
-        .cont{
-            
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 10vh;
-      
-    
-        }
-        table {
-      border-collapse: collapse;
-      width: 50%;
-      justify-content: center;
-      margin-left:410px;
-      
-      font-family:"poppins";
-    }
-    h2{
-        font-family:"poppins";
-        /* margin-left:310px; */
-    }
-
-    th, td {
-      padding: 8px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-
-    .counter {
-      display: flex;
-      align-items: center;
-    }
-
-    .counter button {
-      padding: 5px 10px;
-      background-color: #f1f1f1;
-      border: none;
-      cursor: pointer;
-    }
-    /* .remove-button {
-      display: flex;
-      justify-content: center;
-    } */
-
-    .remove-button button {
-      background-color: red;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      margin-left:10px;
-      font-family:"poppins";
-    }
-    .checkout-button {
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      font-family:"poppins";
-    }
-    </style>
-</head>
-<body>
-    <?php include('header.php'); ?>
-
-    <h2 style="color:green; text-align:center"><u>Cart</u></h2>
-    <div class="cont"></div>
-    <!-- <form action="checkout.php" method="GET"> -->
-    <table id="cartTable">
-      
-    <thead>
-      <tr>
-           <th>Image</th>
-           <th>Product</th>
-           <th>Price</th>
-           <th>Quantity</th>
-           <th> Sub Total</th>
-           <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-    <?php
-       $total = 0;
-
-       foreach($cart as $key => $value){
-        // echo $key ." : ". $value['quantity'] . "<br>";
-        $conn = get_db_connection();
-        $sql = "SELECT * FROM tbl_products where prdct_id = $key";
-        $result = mysqli_query($conn, $sql);
-        $num_of_rows = mysqli_num_rows($result);
+<main class="content-container" style="min-height: 65vh; padding: 40px 24px;">
+    <?php if (empty($cart)): ?>
+        <!-- Empty Cart State -->
+        <div class="empty-cart-card">
+            <div class="empty-cart-icon">
+                <i class="bx bx-shopping-bag"></i>
+            </div>
+            <h3>Your Shopping Cart is Empty</h3>
+            <p>Looks like you haven't added any products to your cart yet. Let's find some health products for you!</p>
+            <a href="index.php" class="btn btn-primary">Continue Shopping</a>
+        </div>
+    <?php else: ?>
+        <h2 class="section-title">Shopping Cart</h2>
         
-        
-        $row = mysqli_fetch_assoc($result)
-                ?>
-      <tr>
-        
-        <td><img src='<?php echo "medimg/". $row['prdct_img'] ?>' alt='' style="width:100px ; height:80px"></td>
-        <td><a href="single.php?id=<?php echo $row['prdct_id']?>"><?php echo $row['prdct_name'] ?></a></td>
-        <td ><?php echo $row['prdct_price'] ?></td>
-        <td> <?php echo $value['quantity'] ?></td>
-        
-        <td><?php echo (int)$row['prdct_price'] * (int)$value['quantity'] ?></td>
-        <td class="remove-button"><button ><a style="color:white ; text-decoration:none" href='delete_cart.php?id=<?php echo $key; ?> '>Remove </button></td>
-      </tr>
-      <?php $total = $total +  ($row['prdct_price'] * $value['quantity']);
-    } ?>
-      
-      
-    </tbody>
-    
-  </table>
-  
-  <table>
-    <tr>
-      <th>Total</th>
-      <td><?php echo $total; ?>.00/-</td>
-    </tr>
-    <tr>
-    <th>
-      <button class="checkout-button"><a href="index.php" style="color:white ; text-decoration:none">Continue Shopping</a></button>
-      </th>
-      <th >
-        <button class="checkout-button" value="Checkout"><a href="checkout.php" style="color:white ; text-decoration:none">Checkout</a></button>
-      </th>
-      
-    </tr>
-    
-  </table>
-  </form>
-  </div>
-  
-  
-</body>
-<?php include('footer.php') ?>
-</html>
+        <div class="cart-flex-container">
+            <!-- Left Side: Staged Cart Items Table -->
+            <div class="cart-items-section">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $total = 0;
+                        $conn = get_db_connection();
+                        
+                        foreach($cart as $key => $value):
+                            $key_clean = (int)$key;
+                            $sql = "SELECT * FROM tbl_products WHERE prdct_id = $key_clean";
+                            $result = $conn->query($sql);
+                            if ($result && $result->num_rows > 0):
+                                $row = $result->fetch_assoc();
+                                $subtotal = (int)$row['prdct_price'] * (int)$value['quantity'];
+                                $total += $subtotal;
+                        ?>
+                                <tr>
+                                    <td>
+                                        <div class="cart-product-info">
+                                            <img src="medimg/<?php echo htmlspecialchars($row['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>">
+                                            <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="cart-product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></a>
+                                        </div>
+                                    </td>
+                                    <td>Rs. <?php echo number_format($row['prdct_price'], 2); ?></td>
+                                    <td>
+                                        <span class="cart-qty-badge"><?php echo htmlspecialchars($value['quantity']); ?></span>
+                                    </td>
+                                    <td class="cart-price-sub">Rs. <?php echo number_format($subtotal, 2); ?></td>
+                                    <td>
+                                        <a href="delete_cart.php?id=<?php echo $key; ?>" class="cart-remove-btn" title="Remove Item">
+                                            <i class="bx bx-trash"></i> Remove
+                                        </a>
+                                    </td>
+                                </tr>
+                        <?php 
+                            endif;
+                        endforeach; 
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Right Side: Sticky Checkout Summary Panel -->
+            <div class="cart-summary-section">
+                <h3>Cart Totals</h3>
+                
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>Rs. <?php echo number_format($total, 2); ?></span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span style="color: var(--success); font-weight: 500;">Free Shipping</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>Rs. <?php echo number_format($total, 2); ?></span>
+                </div>
+                
+                <div class="summary-actions">
+                    <a href="checkout.php" class="btn btn-primary"><i class="bx bx-credit-card"></i> Proceed to Checkout</a>
+                    <a href="index.php" class="btn btn-outline">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</main>
+
+<?php include('footer.php'); ?>
