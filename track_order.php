@@ -170,13 +170,13 @@ include('header.php');
                             <tr>
                                 <td><?php echo htmlspecialchars($item['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td style="text-align: center; font-weight: 600;"><?php echo $item['quantity']; ?></td>
-                                <td style="text-align: right; font-weight: 600;">Rs. <?php echo number_format($item['price'], 2); ?></td>
+                                <td style="text-align: right; font-weight: 600;">रु. <?php echo number_format($item['price'], 2); ?></td>
                             </tr>
                         <?php endforeach; ?>
                         <tr style="background-color: #f8fafc;">
                             <td colspan="2" style="text-align: right; font-weight: 700; color: #0f172a;">Total Amount</td>
                             <td style="text-align: right; font-weight: 800; color: var(--primary); font-size: 15px;">
-                                Rs. <?php echo number_format($order_data['total'], 2); ?>
+                                रु. <?php echo number_format($order_data['total'], 2); ?>
                             </td>
                         </tr>
                     </tbody>

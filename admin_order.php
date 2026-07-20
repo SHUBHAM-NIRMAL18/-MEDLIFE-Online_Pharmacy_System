@@ -53,7 +53,7 @@ $orders = $conn->query("SELECT * FROM tbl_order ORDER BY order_id DESC");
                 <td><?php echo htmlspecialchars($item['user_name'], ENT_QUOTES, 'UTF-8'); ?></td>
                 <td><?php echo htmlspecialchars($item['phone'], ENT_QUOTES, 'UTF-8'); ?></td>
                 <td><?php echo date("M d, Y", strtotime($item['created_at'])); ?></td>
-                <td style="font-weight: 600;">Rs. <?php echo number_format($item['total'], 2); ?></td>
+                <td style="font-weight: 600;">रु. <?php echo number_format($item['total'], 2); ?></td>
                 <td>
                   <?php
                   if ($item['status'] == 0) {

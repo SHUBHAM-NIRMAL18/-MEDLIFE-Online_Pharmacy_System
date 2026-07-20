@@ -245,7 +245,7 @@ if ($prod_count_res) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="price" class="form-label">
-                            Price (Rs.) <span class="required">*</span>
+                            Price (रु.) <span class="required">*</span>
                         </label>
                         <div class="input-icon-wrapper">
                             <i class="bx bx-purchase-tag"></i>

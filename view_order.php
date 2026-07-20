@@ -137,8 +137,8 @@ $order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $orde
               <tr>
                 <td><?php echo htmlspecialchars($item['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></td>
                 <td style="text-align: center;"><?php echo $item['quantity']; ?></td>
-                <td>Rs. <?php echo number_format($item['price'], 2); ?></td>
-                <td style="font-weight: 600;">Rs. <?php echo number_format($line_total, 2); ?></td>
+                <td>रु. <?php echo number_format($item['price'], 2); ?></td>
+                <td style="font-weight: 600;">रु. <?php echo number_format($line_total, 2); ?></td>
               </tr>
             <?php 
               endwhile;
@@ -146,7 +146,7 @@ $order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $orde
             ?>
             <tr>
               <td colspan="3" style="text-align: right; font-weight: 600; color: var(--admin-text);">Grand Total</td>
-              <td style="font-weight: 700; font-size: 15px; color: var(--admin-accent);">Rs. <?php echo number_format($data['total'], 2); ?></td>
+              <td style="font-weight: 700; font-size: 15px; color: var(--admin-accent);">रु. <?php echo number_format($data['total'], 2); ?></td>
             </tr>
           </tbody>
         </table>

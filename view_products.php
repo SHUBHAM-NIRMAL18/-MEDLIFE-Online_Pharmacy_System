@@ -211,7 +211,7 @@ $end_item = min($offset + $limit, $total_records);
                                 </td>
                                 <td>
                                     <span class="price-badge">
-                                        Rs. <?php echo number_format($p['prdct_price'], 2); ?>
+                                        रु. <?php echo number_format($p['prdct_price'], 2); ?>
                                     </span>
                                 </td>
                                 <td style="font-size: 13px; color: #64748b;">

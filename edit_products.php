@@ -225,7 +225,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="prdct_price" class="form-label">
-                            Price (Rs.) <span class="required">*</span>
+                            Price (रु.) <span class="required">*</span>
                         </label>
                         <div class="input-icon-wrapper">
                             <i class="bx bx-purchase-tag"></i>
@@ -340,7 +340,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                     <?php echo htmlspecialchars($product['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
-                    Price: <strong>Rs. <?php echo number_format($product['prdct_price'], 2); ?></strong>
+                    Price: <strong>रु. <?php echo number_format($product['prdct_price'], 2); ?></strong>
                 </div>
             </div>
 

@@ -87,7 +87,7 @@ include('header.php');
                                     <tr>
                                         <td style="font-family: monospace; font-weight: 500;"><?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo date("M d, Y", strtotime($items['created_at'])); ?></td>
-                                        <td style="font-weight: 600; color: var(--text-main);">Rs. <?php echo number_format($items['total'], 2); ?></td>
+                                        <td style="font-weight: 600; color: var(--text-main);">रु. <?php echo number_format($items['total'], 2); ?></td>
                                         <td>
                                             <?php 
                                             if ($items['status'] == 0) {

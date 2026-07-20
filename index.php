@@ -96,7 +96,7 @@ include('header.php');
               </div>
               <h3 class="product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></h3>
               <div class="product-price-row">
-                <span class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></span>
+                <span class="product-price">रु. <?php echo number_format($row['prdct_price'], 2); ?></span>
                 <span class="guarantee-tag"><i class="bx bx-badge-check"></i> Genuine</span>
               </div>
               <div class="product-actions">
@@ -144,7 +144,7 @@ include('header.php');
               </div>
               <h3 class="product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></h3>
               <div class="product-price-row">
-                <span class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></span>
+                <span class="product-price">रु. <?php echo number_format($row['prdct_price'], 2); ?></span>
                 <span class="guarantee-tag"><i class="bx bx-badge-check"></i> Genuine</span>
               </div>
               <div class="product-actions">
@@ -192,7 +192,7 @@ include('header.php');
               </div>
               <h3 class="product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></h3>
               <div class="product-price-row">
-                <span class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></span>
+                <span class="product-price">रु. <?php echo number_format($row['prdct_price'], 2); ?></span>
                 <span class="guarantee-tag"><i class="bx bx-badge-check"></i> Genuine</span>
               </div>
               <div class="product-actions">

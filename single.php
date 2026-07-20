@@ -86,7 +86,7 @@ include('header.php');
             <h1 class="product-detail-title"><?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?></h1>
             <div class="product-detail-company">Manufacturer: <?php echo !empty($prdct_company) ? htmlspecialchars($prdct_company, ENT_QUOTES, 'UTF-8') : 'Medlife Care'; ?></div>
             
-            <div class="product-detail-price">Rs. <?php echo number_format($price, 2); ?></div>
+            <div class="product-detail-price">रु. <?php echo number_format($price, 2); ?></div>
             
             <!-- Technical Specs / Product Details -->
             <div class="product-detail-specs">

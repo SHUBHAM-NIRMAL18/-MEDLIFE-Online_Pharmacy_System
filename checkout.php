@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnOrder'])) {
                 $subtotal += ($row_cart['prdct_price'] * $value['quantity']);
             }
         }
-        $grand_total = $subtotal + 100; // Adding flat Rs. 100 delivery fee
+        $grand_total = $subtotal + 100; // Adding flat रु. 100 delivery fee
 
         $conn = get_db_connection();
         $stmt_order = $conn->prepare("INSERT INTO tbl_order (tracking_order, user_id, user_name, phone, address, payment, prescription, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
@@ -252,7 +252,7 @@ include('header.php');
                         <div class="checkout-summary-item">
                             <span class="p-name" title="<?php echo htmlspecialchars($row_prod['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($row_prod['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></span>
                             <span class="p-qty">x<?php echo htmlspecialchars($value['quantity']); ?></span>
-                            <span class="p-price">Rs. <?php echo number_format($item_sub, 2); ?></span>
+                            <span class="p-price">रु. <?php echo number_format($item_sub, 2); ?></span>
                         </div>
                 <?php 
                     endif;
@@ -262,17 +262,17 @@ include('header.php');
 
             <div class="summary-row" style="border-top: 1px solid var(--border-color); padding-top: 16px;">
                 <span>Cart Subtotal</span>
-                <span>Rs. <?php echo number_format($subtotal, 2); ?></span>
+                <span>रु. <?php echo number_format($subtotal, 2); ?></span>
             </div>
 
             <div class="summary-row">
                 <span>Shipping Fee</span>
-                <span>Rs. 100.00</span>
+                <span>रु. 100.00</span>
             </div>
 
             <div class="summary-row total">
                 <span>Grand Total</span>
-                <span>Rs. <?php echo number_format($subtotal + 100, 2); ?></span>
+                <span>रु. <?php echo number_format($subtotal + 100, 2); ?></span>
             </div>
             
             <div style="font-size: 11.5px; color: var(--text-light); text-align: center; margin-top: 20px;">

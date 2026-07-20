@@ -93,7 +93,7 @@ if ($orderRes && $orderRes->num_rows > 0) {
                 <i class="bx bx-wallet"></i>
             </div>
             <div class="stat-card-info">
-                <h3>Rs. <?php echo number_format($totalRevenue, 2); ?></h3>
+                <h3>रु. <?php echo number_format($totalRevenue, 2); ?></h3>
                 <p>Total Revenue</p>
             </div>
         </div>
@@ -178,7 +178,7 @@ if ($orderRes && $orderRes->num_rows > 0) {
                                         </td>
                                         <td>
                                             <span style="font-weight: 700; color: #059669;">
-                                                Rs. <?php echo number_format($order['total'], 2); ?>
+                                                रु. <?php echo number_format($order['total'], 2); ?>
                                             </span>
                                         </td>
                                         <td style="text-align: center;">
@@ -251,7 +251,7 @@ if ($orderRes && $orderRes->num_rows > 0) {
                                             <?php echo htmlspecialchars($p['prdct_company'], ENT_QUOTES, 'UTF-8'); ?>
                                         </td>
                                         <td>
-                                            <strong style="color: #0f172a;">Rs. <?php echo number_format($p['prdct_price'], 2); ?></strong>
+                                            <strong style="color: #0f172a;">रु. <?php echo number_format($p['prdct_price'], 2); ?></strong>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

@@ -67,7 +67,7 @@ include('header.php');
             
             <div class="detail-line total-line">
                 <strong>Grand Total</strong>
-                <span>Rs. <?php echo number_format($order_data['total'], 2); ?></span>
+                <span>रु. <?php echo number_format($order_data['total'], 2); ?></span>
             </div>
         </div>
         

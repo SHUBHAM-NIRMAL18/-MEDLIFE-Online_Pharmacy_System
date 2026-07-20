@@ -58,11 +58,11 @@ include('header.php');
                                             <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="cart-product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></a>
                                         </div>
                                     </td>
-                                    <td>Rs. <?php echo number_format($row['prdct_price'], 2); ?></td>
+                                    <td>रु. <?php echo number_format($row['prdct_price'], 2); ?></td>
                                     <td>
                                         <span class="cart-qty-badge"><?php echo htmlspecialchars($value['quantity']); ?></span>
                                     </td>
-                                    <td class="cart-price-sub">Rs. <?php echo number_format($subtotal, 2); ?></td>
+                                    <td class="cart-price-sub">रु. <?php echo number_format($subtotal, 2); ?></td>
                                     <td>
                                         <a href="delete_cart.php?id=<?php echo $key; ?>" class="cart-remove-btn" title="Remove Item">
                                             <i class="bx bx-trash"></i> Remove
@@ -83,7 +83,7 @@ include('header.php');
                 
                 <div class="summary-row">
                     <span>Subtotal</span>
-                    <span>Rs. <?php echo number_format($total, 2); ?></span>
+                    <span>रु. <?php echo number_format($total, 2); ?></span>
                 </div>
                 
                 <div class="summary-row">
@@ -93,7 +93,7 @@ include('header.php');
                 
                 <div class="summary-row total">
                     <span>Total</span>
-                    <span>Rs. <?php echo number_format($total, 2); ?></span>
+                    <span>रु. <?php echo number_format($total, 2); ?></span>
                 </div>
                 
                 <div class="summary-actions">
