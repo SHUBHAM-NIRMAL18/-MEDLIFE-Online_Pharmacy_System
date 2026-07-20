@@ -36,11 +36,6 @@ include('header.php');
             <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">Order Details</h3>
             
             <div class="detail-line">
-                <strong>Order ID</strong>
-                <span>#<?php echo $order_data['order_id']; ?></span>
-            </div>
-            
-            <div class="detail-line">
                 <strong>Tracking Reference</strong>
                 <span style="font-family: monospace; font-weight: 600;"><?php echo htmlspecialchars($order_data['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></span>
             </div>
