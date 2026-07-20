@@ -71,11 +71,14 @@ include('header.php');
         $step3_class = $status == 1 ? "completed" : "pending"; // Out for delivery
         $step4_class = $status == 1 ? "completed" : "pending"; // Delivered
         
-        $progress_width = "33%";
+        $progress_width = "25%";
+        $vert_progress = "33%";
         if ($status == 1) {
-            $progress_width = "100%";
+            $progress_width = "75%";
+            $vert_progress = "100%";
         } elseif ($status == 2) {
             $progress_width = "0%";
+            $vert_progress = "0%";
         }
         ?>
 
@@ -106,7 +109,7 @@ include('header.php');
             <?php else: ?>
                 <!-- Stepper Bar -->
                 <div class="timeline-stepper">
-                    <div class="stepper-progress-line" style="width: <?php echo $progress_width; ?>;"></div>
+                    <div class="stepper-progress-line" style="width: <?php echo $progress_width; ?>; --vertical-progress-height: <?php echo $vert_progress; ?>;"></div>
 
                     <!-- Step 1 -->
                     <div class="step-item <?php echo $step1_class; ?>">
