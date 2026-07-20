@@ -44,6 +44,12 @@ if (isset($_POST['btnlogin'])) {
           $_SESSION['name'] = $row['name'];
           $_SESSION['login_status'] = true;
           $_SESSION['user_id'] = $row['user_id'];
+          
+          $_SESSION['toast'] = [
+              'type' => 'success',
+              'title' => 'Login Successful',
+              'message' => 'Welcome back, ' . $row['name'] . '!'
+          ];
     
           if (isset($_POST['remember'])) {
             setcookie('emailcookie', $email, time() + 86400);
