@@ -1,0 +1,5 @@
+/vendor/
+/prescriptions/
+.DS_Store
+Thumbs.db
+.env
