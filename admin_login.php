@@ -74,6 +74,7 @@ if (isset($_POST['login'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Medlife Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
     <link rel="stylesheet" href="css/adminlogin.css?v=<?php echo time(); ?>">
 </head>
 <body>
@@ -129,6 +130,62 @@ if (isset($_POST['login'])) {
             
         </form>
     </div>
+</div>
+
+<!-- Toast Notifications Container -->
+<div class="toast-container" id="toastContainer">
+    <?php if (isset($_SESSION['toast'])): 
+        $toast = $_SESSION['toast'];
+        $toast_type = isset($toast['type']) ? $toast['type'] : 'success';
+        $toast_title = isset($toast['title']) ? $toast['title'] : 'Success';
+        $toast_msg = isset($toast['message']) ? $toast['message'] : '';
+        
+        $icon_class = 'bx bx-check-circle success';
+        $border_class = 'success-border';
+        if ($toast_type == 'error') {
+            $icon_class = 'bx bx-error-circle error';
+            $border_class = 'error-border';
+        } elseif ($toast_type == 'info') {
+            $icon_class = 'bx bx-info-circle info';
+            $border_class = 'info-border';
+        }
+    ?>
+      <div class="toast-card <?php echo $border_class; ?>" id="sessionToast">
+        <div class="toast-icon"><i class="<?php echo $icon_class; ?>"></i></div>
+        <div class="toast-content">
+          <div class="toast-title"><?php echo htmlspecialchars($toast_title, ENT_QUOTES, 'UTF-8'); ?></div>
+          <div class="toast-message"><?php echo htmlspecialchars($toast_msg, ENT_QUOTES, 'UTF-8'); ?></div>
+        </div>
+        <button class="toast-close" onclick="closeToast(this)"><i class="bx bx-x"></i></button>
+      </div>
+      
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toast = document.getElementById('sessionToast');
+            if (toast) {
+                // Slide in
+                setTimeout(function() {
+                    toast.classList.add('show');
+                }, 100);
+                
+                // Auto close after 4.5 seconds
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 4500);
+            }
+        });
+        
+        function closeToast(btn) {
+            var card = btn.closest('.toast-card');
+            if (card) {
+                card.classList.remove('show');
+            }
+        }
+      </script>
+    <?php 
+        unset($_SESSION['toast']);
+    endif; 
+    ?>
 </div>
 
 </body>

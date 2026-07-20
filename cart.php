@@ -105,4 +105,56 @@ include('header.php');
     <?php endif; ?>
 </main>
 
+<!-- Custom Confirmation Modal Overlay -->
+<div class="modal-overlay" id="confirmDeleteModal">
+    <div class="confirm-modal-card">
+        <div class="confirm-modal-icon">
+            <i class="bx bx-trash"></i>
+        </div>
+        <h4>Remove Product?</h4>
+        <p>Are you sure you want to remove "<span id="confirmProductName" style="font-weight: 600; color: var(--text-main);">Product</span>" from your shopping cart?</p>
+        <div class="confirm-modal-actions">
+            <button class="btn btn-outline" id="btnCancelDelete">Cancel</button>
+            <a href="#" class="btn btn-primary" style="background-color: var(--danger); border-color: var(--danger);" id="btnConfirmDelete">Remove</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var removeButtons = document.querySelectorAll('.cart-remove-btn');
+    var modal = document.getElementById('confirmDeleteModal');
+    var cancelBtn = document.getElementById('btnCancelDelete');
+    var confirmLink = document.getElementById('btnConfirmDelete');
+    var productNameSpan = document.getElementById('confirmProductName');
+
+    removeButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var productName = btn.closest('tr').querySelector('.cart-product-name').textContent;
+            var targetHref = btn.getAttribute('href');
+
+            // Populate modal values
+            productNameSpan.textContent = productName;
+            confirmLink.setAttribute('href', targetHref);
+
+            // Show modal
+            modal.classList.add('show');
+        });
+    });
+
+    // Close modal on Cancel
+    cancelBtn.addEventListener('click', function() {
+        modal.classList.remove('show');
+    });
+
+    // Close modal when clicking outside card
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
+});
+</script>
+
 <?php include('footer.php'); ?>
