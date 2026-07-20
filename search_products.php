@@ -1,5 +1,7 @@
 
-<?php session_start(); ?>
+<?php 
+require_once 'config.php';
+session_start(); ?>
 <?php include_once ('header.php'); ?>
 
 
@@ -446,7 +448,7 @@
   <?php
   if(isset($_GET['btnSearchProduct'])){
     $search = $_GET['search'];
-    $conn = new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
     if($conn->connect_error){
         die("Connection failed:".$conn->connect_error);
         }

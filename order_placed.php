@@ -1,4 +1,6 @@
-<?php include_once('header.php'); ?>
+<?php 
+require_once 'config.php';
+include_once('header.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,7 +67,7 @@
 <div class="pot">
 <?php
     
-    $conn = new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
     $sql = "SELECT * FROM tbl_order ORDER BY order_id DESC LIMIT 1";
     $result = $conn->query($sql);
 

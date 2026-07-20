@@ -1,10 +1,12 @@
 <?php 
+
+require_once 'config.php';
 require_once 'dashboard.php';
 $categories=[];
 $name = $company = $price = $manufactured = $expiry = $image = $manu = $exp ='';
 
 
-$con = new mysqli('localhost','root','','medlife');
+$con = get_db_connection();
 $sqli = "select * from tbl_categories";
 $result = $con->query($sqli);
 if ($result->num_rows > 0) {
@@ -73,7 +75,7 @@ if(isset($_POST['btnAdd'])){
   }
     if(count($err)==0){
       try{
-      $conn = new mysqli('localhost','root','','medlife');
+      $conn = get_db_connection();
       $sql = "insert into tbl_products(prdct_name, prdct_company, prdct_price, manf_date, exp_date, prdct_img,cat_id) values('$name', '$company', '$price','$manufactured', '$expiry', '$image','$cat_id')";
       $conn->query($sql);
       if($conn->affected_rows == 1 && $conn->insert_id>0){

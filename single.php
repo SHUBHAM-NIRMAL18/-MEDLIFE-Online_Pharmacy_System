@@ -4,9 +4,11 @@
 
 
 
+
+require_once 'config.php';
 if(isset($_GET['id'])){
     $product_id = $_GET['id'];
-    $conn= new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
    $sql = "SELECT * FROM tbl_products  WHERE prdct_id=$product_id";
    $result = mysqli_query($conn, $sql);
 //    header('location:products.php');

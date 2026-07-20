@@ -1,6 +1,8 @@
 <?php 
     
-    session_start();
+    
+require_once 'config.php';
+session_start();
     if(isset($_SESSION['cart'])){
     $cart =  $_SESSION['cart'];
     }
@@ -104,7 +106,7 @@
 
        foreach($cart as $key => $value){
         // echo $key ." : ". $value['quantity'] . "<br>";
-        $conn = new mysqli('localhost','root','','medlife');
+        $conn = get_db_connection();
         $sql = "SELECT * FROM tbl_products where prdct_id = $key";
         $result = mysqli_query($conn, $sql);
         $num_of_rows = mysqli_num_rows($result);

@@ -1,6 +1,8 @@
 <?php
 
-    $conn = new mysqli('localhost','root','','medlife');
+    
+require_once 'config.php';
+$conn = get_db_connection();
     if($conn->connect_error){
         die("Connection failed:".$conn->connect_error);
         }

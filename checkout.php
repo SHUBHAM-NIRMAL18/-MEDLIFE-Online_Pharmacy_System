@@ -1,5 +1,7 @@
 
-<?php include('header.php'); ?>
+<?php 
+require_once 'config.php';
+include('header.php'); ?>
 
 <?php 
   if(!isset($_SESSION['email'])){
@@ -133,7 +135,7 @@ input[type="submit"]:hover {
             $total= 0;
             foreach($cart as $key => $value){
               
-              $conn = new mysqli('localhost','root','','medlife');
+              $conn = get_db_connection();
               $sql_cart = "SELECT * FROM tbl_products where prdct_id = $key";
               $result_cart = mysqli_query($conn, $sql_cart);
               $row_cart = mysqli_fetch_assoc($result_cart);
@@ -167,7 +169,7 @@ input[type="submit"]:hover {
 
   <?php 
     $id = $_SESSION['user_id'];
-  $connection = new mysqli('localhost','root','','medlife');
+  $connection = get_db_connection();
       $sql = "select * from tbl_user where user_id=$id";
       $result = $connection->query($sql);
       if ($result->num_rows > 0) {
@@ -229,7 +231,7 @@ input[type="submit"]:hover {
       
 
         $tracking_order = "medlife". rand(111,999);
-        $conn = new mysqli('localhost','root','','medlife');
+        $conn = get_db_connection();
         $query = "insert into tbl_order(tracking_order, user_id,user_name, phone, address, payment, prescription, total) values('$tracking_order','$uid','$fullname','$phone','$address','$payment','$uploadPath','$total')";
         $query_run = mysqli_query($conn,$query);
 
@@ -246,7 +248,7 @@ input[type="submit"]:hover {
             foreach($cart as $key => $value)
             {
               
-              $conn = new mysqli('localhost','root','','medlife');
+              $conn = get_db_connection();
               $sql_cart = "SELECT * FROM tbl_products where prdct_id = $key";
               $result_cart = mysqli_query($conn, $sql_cart);
               $row_cart = mysqli_fetch_assoc($result_cart);
