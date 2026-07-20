@@ -1,239 +1,212 @@
 <?php 
 require_once 'config.php';
-include_once('dashboard.php'); ?>
-<?php 
-    if(isset($_POST['btnStatus'])){
-        $odr_id = $_POST['order_id'];
-        $order_status = $_POST['order_status'];
+include_once('dashboard.php');
 
-        $conn = get_db_connection();
-        $status = "update tbl_order set status='$order_status' where order_id='$odr_id'";
-        $status_query= mysqli_query($conn,$status);
-       
-        echo "<script> alert('Status Updated Sucessfully');</script>";
-        
-        
-        
+$conn = get_db_connection();
+
+// Handle status update with confirmation
+if (isset($_POST['btnStatus'])) {
+    $odr_id = (int)$_POST['order_id'];
+    $order_status = (int)$_POST['order_status'];
+
+    $stmt = $conn->prepare("UPDATE tbl_order SET status = ? WHERE order_id = ?");
+    if ($stmt) {
+        $stmt->bind_param("ii", $order_status, $odr_id);
+        $stmt->execute();
+        $stmt->close();
     }
 
-
-?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order Details</title>
-    <style>
-        .orderstatus {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            margin-top:100px;
-            margin-left:500px;
-        }
-
-        .order-container {
-            display: flex;
-        }
-
-        .customer-details {
-            flex: 1;
-            margin-right: 20px;
-        }
-
-        .customer-details h3 {
-            margin-bottom: 10px;
-        }
-
-        .customer-details form {
-            text-align: left;
-        }
-
-        .customer-details label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        .customer-details input,
-        .customer-details textarea {
-            width: 100%;
-            padding: 8px;
-        }
-
-        .order-details {
-            flex: 1;
-            margin-left:30px;
-        }
-
-        .order-details h3 {
-            margin-bottom: 10px;
-        }
-
-        .product {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .product img {
-            width: 100px;
-            margin-right: 10px;
-        }
-
-        .product-info {
-            text-align: left;
-        }
-
-        .product-info p {
-            margin: 5px 0;
-        }
-
-        .product-info p span {
-            font-weight: bold;
-        }
-        .order-summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            text-align:center;
-        }
-
-        .order-summary-table th, .order-summary-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        .order-summary-table th {
-            background-color: #f2f2f2;
-        }
-
-        .order-summary-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .order-summary-table img {
-            width: 50px;
-        }
-
-        .order-details p {
-            margin: 5px 0;
-        }
-
-        .order-details p span {
-            font-weight: bold;
-        }
-
-        .order-status {
-            padding: 5px;
-            border-radius: 4px;
-        }
-                .update-status {
-                    display: block;
-                    margin-top: 20px;
-                    margin-left:95px;
-                    padding: 10px 20px;
-                    background-color: green;
-                    color: #fff;
-                    text-decoration: none;
-                    font-weight: bold;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }
-
-                .update-status:hover {
-                    background-color: #0056b3;
-                }
-                .total-row {
-            font-weight: bold;
-        }
-
-.total-row td {
-    text-align: right;
+    echo "<script>window.location.href = 'view_order.php?order_id=" . $odr_id . "&updated=1';</script>";
+    exit();
 }
 
-    </style>
-</head>
-<body>
-    <div class="orderstatus">
-        <h2><u>Order Details</u></h2>
-        <div class="order-container">
-            <div class="customer-details">
-                <h3>Customer Details</h3>
-                <?php 
-                if(isset($_GET['order_id'])){
-                    $order_id = $_GET['order_id'];
+// Fetch order data
+$data = null;
+$order_id = 0;
+if (isset($_GET['order_id'])) {
+    $order_id = (int)$_GET['order_id'];
+    $stmt = $conn->prepare("SELECT * FROM tbl_order WHERE order_id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows > 0) {
+            $data = $result->fetch_assoc();
+        }
+        $stmt->close();
+    }
+}
 
-                    $conn = get_db_connection();
-                    $query="select * from tbl_order where order_id = '$order_id'";
-                    $result=$conn->query($query);
-                    $data = mysqli_fetch_assoc($result);
+if (!$data) {
+    echo "<script>window.location.href = 'admin_order.php';</script>";
+    exit();
+}
 
+// Fetch order items
+$order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $order_id");
+?>
 
-                }
-                
-                ?>
-                <form>
-                    <label for="name">Tracking No:</label>
-                    <input type="text" id="name" name="name" value='<?php echo $data['tracking_order']; ?>'>
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" value='<?php echo $data['user_name']; ?>'>
-                    
-                    <label for="address">Address:</label>
-                    <input type='text' id="address" name="address" value='<?php echo $data['address']; ?>' >
-                    <label for="phone">Phone:</label>
-                    <input type="text" id="phone" name="phone" value='<?php echo $data['phone']; ?>'>
-                </form>
-            </div>
-            
-                
-                <div class="order-details">
-                <h3>Order Summary</h3>
-                <table class="order-summary-table">
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        
-                        
-                    </tr>
-                    <?php 
-                            $conn = get_db_connection();
-                            $order= "select * from tbl_orderitems where order_id= $order_id ";
-                            $order_query= mysqli_query($conn,$order);
+  <div class="admin-page-wrapper">
 
-                            if(mysqli_num_rows($order_query) > 0 ){
-                                foreach($order_query as $items){
-                              
-                               
-                        ?>
-                    <tr>
-                        <td><?php echo $items['prdct_name']; ?></td>
-                        <td><span class="quantity"><?php echo $items['quantity'] ; ?></span></td>
-                        <td><span class="price"><?php echo $items['price'] ; ?></span></td>
-                        
-                    </tr>
-                    <?php } } ?>
-                    <tr class="total-row">
-                        <td colspan="2" class="text-right">Total:</td>
-                        <td><span class="total"><?php echo $data['total']; ?></span></td>
-                    </tr>
-                </table>
-                <p>Payment Method: <span class="payment-method"><?php echo $data['payment'];?></span></p>
-                <p>Order Status: </p>
-                    <form action="" method="POST">
-                    <input type="hidden" name="order_id" value="<?php echo $data['order_id'];?>">
-                    <select class="order-status" name="order_status">
-                        <option value="0" <?php echo $data['status']== 0?"selected":"";?>>Under Process</option>
-                        <option value="1" <?php echo $data['status']== 1?"selected":"";?>>Completed</option>
-                        <option value="2" <?php echo $data['status']== 2?"selected":"";?>>Cancled</option>
-                        
-                    </select>
-                
-                <button  name="btnStatus"class="update-status">Update Status</button>
-                </form>
-            </div>
-               
-        </div>
+    <div class="admin-page-header" style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <h1>Order #<?php echo $data['order_id']; ?></h1>
+        <p>Tracking: <strong style="font-family: monospace;"><?php echo htmlspecialchars($data['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></strong> &middot; Placed on <?php echo date("F d, Y, g:i a", strtotime($data['created_at'])); ?></p>
+      </div>
+      <a href="admin_order.php" class="admin-btn outline" style="height: 36px; display: inline-flex; align-items: center; gap: 4px;">
+        <i class="bx bx-arrow-back"></i> Back to Orders
+      </a>
     </div>
-</body>
+
+    <?php if (isset($_GET['updated'])): ?>
+      <div style="padding: 12px 18px; background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 6px; color: var(--admin-success); font-size: 13.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <i class="bx bx-check-circle" style="font-size: 18px;"></i> Order status has been updated successfully.
+      </div>
+    <?php endif; ?>
+
+    <div class="order-detail-grid">
+
+      <!-- Customer Details Card -->
+      <div class="admin-card">
+        <h3><i class="bx bx-user" style="font-size: 16px;"></i> Customer Details</h3>
+
+        <div class="admin-form-group">
+          <label>Customer Name</label>
+          <input type="text" class="admin-form-control" value="<?php echo htmlspecialchars($data['user_name'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+        </div>
+
+        <div class="admin-form-group">
+          <label>Phone</label>
+          <input type="text" class="admin-form-control" value="<?php echo htmlspecialchars($data['phone'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+        </div>
+
+        <div class="admin-form-group">
+          <label>Delivery Address</label>
+          <input type="text" class="admin-form-control" value="<?php echo htmlspecialchars($data['address'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+        </div>
+
+        <div class="admin-form-group">
+          <label>Payment Method</label>
+          <input type="text" class="admin-form-control" value="<?php echo strtoupper(htmlspecialchars($data['payment'], ENT_QUOTES, 'UTF-8')); ?>" readonly>
+        </div>
+
+        <?php if (!empty($data['prescription'])): ?>
+        <div class="admin-form-group">
+          <label>Prescription</label>
+          <a href="<?php echo htmlspecialchars($data['prescription'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="admin-btn view" style="display: inline-flex; gap: 4px; margin-top: 4px;">
+            <i class="bx bx-file"></i> View File
+          </a>
+        </div>
+        <?php endif; ?>
+
+        <!-- Update Status Section -->
+        <form action="" method="POST" id="statusForm">
+          <input type="hidden" name="order_id" value="<?php echo $data['order_id']; ?>">
+          <div class="order-status-form">
+            <select class="admin-select" name="order_status" id="orderStatusSelect">
+              <option value="0" <?php echo $data['status'] == 0 ? "selected" : ""; ?>>Under Process</option>
+              <option value="1" <?php echo $data['status'] == 1 ? "selected" : ""; ?>>Completed</option>
+              <option value="2" <?php echo $data['status'] == 2 ? "selected" : ""; ?>>Cancelled</option>
+            </select>
+            <button type="button" class="admin-btn primary" onclick="confirmStatusUpdate()">
+              <i class="bx bx-refresh"></i> Update
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div class="admin-card">
+        <h3><i class="bx bx-receipt" style="font-size: 16px;"></i> Order Summary</h3>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php 
+            if ($order_items && $order_items->num_rows > 0):
+              while ($item = $order_items->fetch_assoc()):
+                $line_total = $item['price'] * $item['quantity'];
+            ?>
+              <tr>
+                <td><?php echo htmlspecialchars($item['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                <td style="text-align: center;"><?php echo $item['quantity']; ?></td>
+                <td>Rs. <?php echo number_format($item['price'], 2); ?></td>
+                <td style="font-weight: 600;">Rs. <?php echo number_format($line_total, 2); ?></td>
+              </tr>
+            <?php 
+              endwhile;
+            endif;
+            ?>
+            <tr>
+              <td colspan="3" style="text-align: right; font-weight: 600; color: var(--admin-text);">Grand Total</td>
+              <td style="font-weight: 700; font-size: 15px; color: var(--admin-accent);">Rs. <?php echo number_format($data['total'], 2); ?></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--admin-border); display: flex; gap: 20px; font-size: 13px; color: var(--admin-text-muted);">
+          <span><strong>Status:</strong> 
+            <?php
+            if ($data['status'] == 0) echo '<span class="admin-badge process">Under Process</span>';
+            elseif ($data['status'] == 1) echo '<span class="admin-badge completed">Completed</span>';
+            elseif ($data['status'] == 2) echo '<span class="admin-badge cancelled">Cancelled</span>';
+            ?>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Status Update Confirmation Modal -->
+  <div class="admin-modal-overlay" id="statusModal">
+    <div class="admin-modal-card">
+      <div class="admin-modal-icon warning">
+        <i class="bx bx-error"></i>
+      </div>
+      <h4>Update Order Status?</h4>
+      <p>Are you sure you want to change the status for order <strong>#<?php echo $data['order_id']; ?></strong>? The customer will see this change on their dashboard.</p>
+      <div class="admin-modal-actions">
+        <button class="admin-btn outline" onclick="closeStatusModal()">Cancel</button>
+        <button class="admin-btn primary" onclick="submitStatusForm()">Confirm Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function confirmStatusUpdate() {
+      document.getElementById('statusModal').classList.add('show');
+    }
+
+    function closeStatusModal() {
+      document.getElementById('statusModal').classList.remove('show');
+    }
+
+    function submitStatusForm() {
+      // Add hidden submit trigger
+      var form = document.getElementById('statusForm');
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'btnStatus';
+      input.value = '1';
+      form.appendChild(input);
+      form.submit();
+    }
+
+    // Close on backdrop click
+    document.getElementById('statusModal').addEventListener('click', function(e) {
+      if (e.target === this) closeStatusModal();
+    });
+  </script>
+
+  </main>
+  </body>
 </html>
