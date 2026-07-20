@@ -52,33 +52,6 @@ if (!isset($_SESSION['login_status'])) {
           <a href="view_products.php" class="sidebar-sublink">Manage Products</a>
         </div>
 
-        <!-- Inventory -->
-        <div class="sidebar-section-title">Inventory</div>
-
-        <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
-          <i class="bx bx-capsule"></i><span>Medicines</span>
-          <i class="bx bx-chevron-right submenu-arrow"></i>
-        </div>
-        <div class="sidebar-submenu">
-          <a href="view_medicines.php" class="sidebar-sublink">Manage Medicines</a>
-        </div>
-
-        <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
-          <i class="bx bx-bone"></i><span>Supplements</span>
-          <i class="bx bx-chevron-right submenu-arrow"></i>
-        </div>
-        <div class="sidebar-submenu">
-          <a href="view_supplements.php" class="sidebar-sublink">Manage Supplements</a>
-        </div>
-
-        <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
-          <i class="bx bx-tachometer"></i><span>Devices</span>
-          <i class="bx bx-chevron-right submenu-arrow"></i>
-        </div>
-        <div class="sidebar-submenu">
-          <a href="view_devices.php" class="sidebar-sublink">Manage Devices</a>
-        </div>
-
         <!-- Operations -->
         <div class="sidebar-section-title">Operations</div>
 
