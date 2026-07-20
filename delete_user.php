@@ -1,18 +1,29 @@
 <?php 
-
 require_once 'config.php';
-$id = $_GET['user_id'];
-try{
-  $conn = get_db_connection();
-  
-  $sql = "delete from tbl_user where user_id=$id";
-  $conn->query($sql);
-  if ($conn->affected_rows == 1 ) {
-    echo "Categories delete success";
-  }
-  header('location:view_user.php?action=1');
+$conn = get_db_connection();
+
+if (isset($_GET['admin_id']) && is_numeric($_GET['admin_id'])) {
+    $admin_id = (int)$_GET['admin_id'];
+    $stmt = $conn->prepare("DELETE FROM tbl_admin WHERE admin_id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $admin_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+    header('Location: view_user.php?tab=admin&action=1');
+    exit();
+} elseif (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
+    $user_id = (int)$_GET['user_id'];
+    $stmt = $conn->prepare("DELETE FROM tbl_user WHERE user_id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+    header('Location: view_user.php?tab=customer&action=1');
+    exit();
+} else {
+    header('Location: view_user.php?msg=1');
+    exit();
 }
-catch(Exception $e){
-   die('Database  Error : ' .$e->getMessage());
-}
- ?>
+?>
