@@ -74,13 +74,33 @@ include('header.php');
         <?php while ($row = $medicines->fetch_assoc()): ?>
           <div class="product-card">
             <div class="product-img-wrapper">
+              <div class="product-badge-bar">
+                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
+                  <i class="bx bx-heart"></i>
+                </button>
+              </div>
               <img src="medimg/<?php echo htmlspecialchars($row['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>">
             </div>
             <div class="product-info">
+              <div class="product-meta-row">
+                <span class="product-company"><?php echo !empty($row['prdct_company']) ? htmlspecialchars($row['prdct_company'], ENT_QUOTES, 'UTF-8') : 'Medlife Care'; ?></span>
+                <div class="product-rating">
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star-half"></i>
+                  <span>4.8</span>
+                </div>
+              </div>
               <h3 class="product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></h3>
-              <p class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></p>
+              <div class="product-price-row">
+                <span class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></span>
+                <span class="guarantee-tag"><i class="bx bx-badge-check"></i> Genuine</span>
+              </div>
               <div class="product-actions">
-                <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline">Details</a>
+                <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline"><i class="bx bx-info-circle"></i> Details</a>
                 <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
               </div>
             </div>
@@ -102,13 +122,33 @@ include('header.php');
         <?php while ($row = $supplements->fetch_assoc()): ?>
           <div class="product-card">
             <div class="product-img-wrapper">
+              <div class="product-badge-bar">
+                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
+                  <i class="bx bx-heart"></i>
+                </button>
+              </div>
               <img src="medimg/<?php echo htmlspecialchars($row['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>">
             </div>
             <div class="product-info">
+              <div class="product-meta-row">
+                <span class="product-company"><?php echo !empty($row['prdct_company']) ? htmlspecialchars($row['prdct_company'], ENT_QUOTES, 'UTF-8') : 'Medlife Care'; ?></span>
+                <div class="product-rating">
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star-half"></i>
+                  <span>4.9</span>
+                </div>
+              </div>
               <h3 class="product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></h3>
-              <p class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></p>
+              <div class="product-price-row">
+                <span class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></span>
+                <span class="guarantee-tag"><i class="bx bx-badge-check"></i> Genuine</span>
+              </div>
               <div class="product-actions">
-                <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline">Details</a>
+                <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline"><i class="bx bx-info-circle"></i> Details</a>
                 <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
               </div>
             </div>
@@ -130,13 +170,33 @@ include('header.php');
         <?php while ($row = $devices->fetch_assoc()): ?>
           <div class="product-card">
             <div class="product-img-wrapper">
+              <div class="product-badge-bar">
+                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
+                  <i class="bx bx-heart"></i>
+                </button>
+              </div>
               <img src="medimg/<?php echo htmlspecialchars($row['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>">
             </div>
             <div class="product-info">
+              <div class="product-meta-row">
+                <span class="product-company"><?php echo !empty($row['prdct_company']) ? htmlspecialchars($row['prdct_company'], ENT_QUOTES, 'UTF-8') : 'Medlife Care'; ?></span>
+                <div class="product-rating">
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star"></i>
+                  <i class="bx bxs-star-half"></i>
+                  <span>4.7</span>
+                </div>
+              </div>
               <h3 class="product-name"><?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></h3>
-              <p class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></p>
+              <div class="product-price-row">
+                <span class="product-price">Rs. <?php echo number_format($row['prdct_price'], 2); ?></span>
+                <span class="guarantee-tag"><i class="bx bx-badge-check"></i> Genuine</span>
+              </div>
               <div class="product-actions">
-                <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline">Details</a>
+                <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline"><i class="bx bx-info-circle"></i> Details</a>
                 <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
               </div>
             </div>
