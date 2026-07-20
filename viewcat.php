@@ -1,9 +1,11 @@
-<?php include ('dashboard.php') ?>
+<?php 
+require_once 'config.php';
+include ('dashboard.php') ?>
 
 <?php 
   $categories =[];
   try{
-    $conn = new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
     $sql = "SELECT * FROM tbl_categories";
     $result = $conn->query($sql);
     if ($result->num_rows > 0) {

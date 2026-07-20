@@ -1,4 +1,6 @@
-<?php include_once('dashboard.php'); ?>
+<?php 
+require_once 'config.php';
+include_once('dashboard.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,7 +53,7 @@
           <tbody>
           <?php
           
-          $conn = new mysqli('localhost','root','','medlife');
+          $conn = get_db_connection();
           $orders = "SELECT * FROM tbl_order ORDER BY order_id DESC ";
           $order_run = $conn->query($orders);
           if(mysqli_num_rows($order_run) > 0)

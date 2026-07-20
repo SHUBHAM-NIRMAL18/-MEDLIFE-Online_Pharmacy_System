@@ -1,8 +1,10 @@
 <?php
+
+require_once 'config.php';
 include ('dashboard.php');
 
 // Create a connection
-$conn = new mysqli('localhost', 'root', '', 'medlife');
+$conn = get_db_connection();
 
 // Check the connection
 if ($conn->connect_error) {

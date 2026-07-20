@@ -1,9 +1,11 @@
 <?php 
 
-    include('dashboard.php');
+    
+require_once 'config.php';
+include('dashboard.php');
   $categories =[];
   try{
-    $conn = new mysqli('localhost','root','','medlife');
+    $conn = get_db_connection();
     $sql = "SELECT * FROM tbl_products where cat_id = 2";
     $result = $conn->query($sql);
     if ($result->num_rows > 0) {

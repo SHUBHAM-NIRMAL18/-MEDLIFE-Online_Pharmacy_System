@@ -1,5 +1,7 @@
 <?php
-     include_once ('dashboard.php');
+     
+require_once 'config.php';
+include_once ('dashboard.php');
 
     $name = $email = $password = $conpassword = $status = $message = '';
     if(isset($_POST['btnadRegister']))
@@ -52,7 +54,7 @@
 
           if(count($err) == 0){
             try{
-              $conn = new mysqli('localhost','root','','medlife');
+              $conn = get_db_connection();
               $sql = "insert into tbl_admin(name,email,password,status) values ('$name','$email','$password','$status')";
               $conn->query($sql);
               if($conn->affected_rows == 1 && $conn-> insert_id > 0)

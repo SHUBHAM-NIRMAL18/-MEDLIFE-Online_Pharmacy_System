@@ -1,7 +1,9 @@
 <?php 
+
+require_once 'config.php';
 $id = $_GET['cat_id'];
 try{
-  $conn = new mysqli('localhost','root','','medlife');
+  $conn = get_db_connection();
   
   $sql = "delete from tbl_categories where cat_id=$id";
   $conn->query($sql);

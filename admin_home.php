@@ -1,4 +1,6 @@
-<?php include_once 'dashboard.php' ?>
+<?php 
+require_once 'config.php';
+include_once 'dashboard.php' ?>
 
 <!DOCTYPE html>
 <html>
@@ -65,7 +67,7 @@
     <div class="container">
         <?php
             try{
-                $conn = new mysqli('localhost','root','','medlife');
+                $conn = get_db_connection();
                 if($conn->connect_error){
                     die("Connection failed:".$conn->connect_error);
                     }
@@ -84,7 +86,7 @@
         </div>
         <?php
             try{
-                $conn = new mysqli('localhost','root','','medlife');
+                $conn = get_db_connection();
                 if($conn->connect_error){
                     die("Connection failed:".$conn->connect_error);
                     }
@@ -105,7 +107,7 @@
     <div class="container">
     <?php
             try{
-                $conn = new mysqli('localhost','root','','medlife');
+                $conn = get_db_connection();
                 if($conn->connect_error){
                     die("Connection failed:".$conn->connect_error);
                     }
@@ -124,7 +126,7 @@
         </div>
         <?php
             try{
-                $conn = new mysqli('localhost','root','','medlife');
+                $conn = get_db_connection();
                 if($conn->connect_error){
                     die("Connection failed:".$conn->connect_error);
                     }

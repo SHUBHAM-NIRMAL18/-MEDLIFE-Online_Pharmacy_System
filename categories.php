@@ -1,4 +1,6 @@
-<?php include ('dashboard.php') ?>
+<?php 
+require_once 'config.php';
+include ('dashboard.php') ?>
 
 <!DOCTYPE html>
 <html>
@@ -92,7 +94,7 @@
       }
 
       if(count($err)==0){
-      $conn = new mysqli('localhost', 'root','','medlife');
+      $conn = get_db_connection();
 
       
       if ($conn->connect_error) {

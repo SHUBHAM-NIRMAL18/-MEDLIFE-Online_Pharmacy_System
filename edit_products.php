@@ -1,6 +1,8 @@
 
 
 <?php 
+
+require_once 'config.php';
 ob_start();
 require_once 'dashboard.php';
 
@@ -41,7 +43,7 @@ if (isset($_POST['btnUpdate'])) {
 
  
     try{
-      $conn = new mysqli('localhost','root','','medlife');
+      $conn = get_db_connection();
       
 
      
@@ -62,7 +64,7 @@ if (isset($_POST['btnUpdate'])) {
 <?php
 
 try{
-  $conn = new mysqli('localhost','root','','medlife');
+  $conn = get_db_connection();
   
   $sql = "SELECT tbl_products.*, tbl_categories.cat_name FROM tbl_products, tbl_categories WHERE tbl_products.cat_id = tbl_categories.cat_id and prdct_id=$id";
   $res = $conn->query($sql);
@@ -79,7 +81,7 @@ catch(Exception $e){
 }
 ?>
 <?php 
-$con = new mysqli('localhost','root','','medlife');
+$con = get_db_connection();
 $sqli = "select * from tbl_categories";
 $result = $con->query($sqli);
 if ($result->num_rows == 1) {

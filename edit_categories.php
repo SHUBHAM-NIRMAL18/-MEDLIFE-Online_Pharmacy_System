@@ -1,5 +1,7 @@
 
 <?php 
+
+require_once 'config.php';
 ob_start();
 include_once ('dashboard.php') ?>
 <?php 
@@ -27,7 +29,7 @@ if (isset($_POST['btnUpdate'])) {
 
  
     try{
-      $conn = new mysqli('localhost','root','','medlife');
+      $conn = get_db_connection();
       
 
      
@@ -48,7 +50,7 @@ if (isset($_POST['btnUpdate'])) {
 <?php
 
 try{
-  $conn = new mysqli('localhost','root','','medlife');
+  $conn = get_db_connection();
   
   $sql = "select * from tbl_categories where cat_id=$id";
   $res = $conn->query($sql);

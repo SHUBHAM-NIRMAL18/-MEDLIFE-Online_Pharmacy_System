@@ -1,10 +1,12 @@
-<?php include_once('dashboard.php'); ?>
+<?php 
+require_once 'config.php';
+include_once('dashboard.php'); ?>
 <?php 
     if(isset($_POST['btnStatus'])){
         $odr_id = $_POST['order_id'];
         $order_status = $_POST['order_status'];
 
-        $conn = new mysqli('localhost','root','','medlife');
+        $conn = get_db_connection();
         $status = "update tbl_order set status='$order_status' where order_id='$odr_id'";
         $status_query= mysqli_query($conn,$status);
        
@@ -161,7 +163,7 @@
                 if(isset($_GET['order_id'])){
                     $order_id = $_GET['order_id'];
 
-                    $conn = new mysqli('localhost','root','','medlife');
+                    $conn = get_db_connection();
                     $query="select * from tbl_order where order_id = '$order_id'";
                     $result=$conn->query($query);
                     $data = mysqli_fetch_assoc($result);
@@ -195,7 +197,7 @@
                         
                     </tr>
                     <?php 
-                            $conn = new mysqli('localhost','root','','medlife');
+                            $conn = get_db_connection();
                             $order= "select * from tbl_orderitems where order_id= $order_id ";
                             $order_query= mysqli_query($conn,$order);
 

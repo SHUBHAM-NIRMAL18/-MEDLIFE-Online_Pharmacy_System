@@ -1,11 +1,13 @@
 <?php
-$servername = "localhost";  // Replace with your database server name
-$username = "username";    // Replace with your database username
-$password = "password";    // Replace with your database password
-$dbname = "medlife";       // Replace with your database name
+
+require_once 'config.php';
+// Replace with your database server name
+// Replace with your database username
+// Replace with your database password
+// Replace with your database name
 
 // Create a connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = get_db_connection();
 
 // Check the connection
 if ($conn->connect_error) {
