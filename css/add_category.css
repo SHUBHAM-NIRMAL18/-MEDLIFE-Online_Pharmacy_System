@@ -1,0 +1,345 @@
+/* ==========================================================================
+   Admin Add Category Dedicated Stylesheet (categories.php)
+   ========================================================================== */
+
+/* Breadcrumb Navigation */
+.admin-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-item:hover {
+  color: var(--primary, #059669);
+}
+
+.breadcrumb-separator {
+  color: #cbd5e1;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item.active {
+  color: #0f172a;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Page Header */
+.category-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.category-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-page-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* 2-Column Grid Layout */
+.category-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Category Card Container */
+.category-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
+}
+
+.category-card-header {
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-card-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-card-header h3 i {
+  color: var(--primary, #059669);
+  font-size: 20px;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.form-label span.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon-wrapper i {
+  position: absolute;
+  left: 14px;
+  font-size: 19px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.input-icon-wrapper .form-control,
+.input-icon-wrapper .form-select {
+  padding-left: 42px;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+  height: 48px;
+  padding: 10px 16px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary, #059669);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+  outline: none;
+}
+
+.input-icon-wrapper:focus-within i {
+  color: var(--primary, #059669);
+}
+
+.field-error {
+  color: #dc2626;
+  font-size: 12.5px;
+  font-weight: 500;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Feedback Banners */
+.alert-banner {
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 13.5px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-banner.success {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+}
+
+.alert-banner.success i {
+  font-size: 20px;
+  color: #059669;
+}
+
+.alert-banner.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.alert-banner.error i {
+  font-size: 20px;
+  color: #dc2626;
+}
+
+/* Action Buttons */
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-submit {
+  flex: 1;
+  height: 48px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  height: 48px;
+  padding: 0 20px;
+  background-color: #ffffff;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* Sidebar Tips & Info Card */
+.category-tips-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-tips-card h4 i {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tips-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.tips-list li i {
+  color: #10b981;
+  font-size: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.quick-stats-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quick-stats-info div {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.quick-stats-info strong {
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* Responsive Layout */
+@media (max-width: 900px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}
