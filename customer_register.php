@@ -52,8 +52,16 @@ if (isset($_POST['btnRegister'])){
       $sql = "insert into tbl_user(name,email,phone,address,password,gender) values ('$name','$email','$phone','$address','$password','$gender')";
       $conn->query($sql);
       if ($conn->affected_rows == 1 && $conn->insert_id > 0) {
-        $_SESSION['user'] = $name;
-        $message = '<div class="alert alert-success">User created successfully! <a href="customer_login.php" style="text-decoration: underline;">Click here to Login</a></div>';
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['toast'] = [
+            'type' => 'success',
+            'title' => 'Registration Successful',
+            'message' => 'Your account has been created, ' . $name . '! Please log in.'
+        ];
+        header('location:customer_login.php');
+        exit();
       }
     } catch(Exception $e) {
       $message = '<div class="alert alert-error">Database error: ' . htmlspecialchars($e->getMessage()) . '</div>';
