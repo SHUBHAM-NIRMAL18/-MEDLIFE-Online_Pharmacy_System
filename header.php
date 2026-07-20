@@ -29,7 +29,7 @@ $active_page = basename($_SERVER['PHP_SELF']);
   <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
   
   <!-- Global Stylesheet -->
-  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/global.css?v=<?php echo time(); ?>">
 </head>
 <body>
 <div class="site-wrapper">
