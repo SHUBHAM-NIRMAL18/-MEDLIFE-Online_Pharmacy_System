@@ -68,8 +68,8 @@ if (!isset($_SESSION['login_status'])) {
           <i class="bx bx-chevron-right submenu-arrow"></i>
         </div>
         <div class="sidebar-submenu">
-          <a href="admin_register1.php" class="sidebar-sublink">Add Admin</a>
-          <a href="view_user.php" class="sidebar-sublink">Manage Users</a>
+          <a href="admin_register1.php" class="sidebar-sublink">Add Admin / Manager</a>
+          <a href="view_user.php" class="sidebar-sublink">Manage Accounts</a>
         </div>
 
       </div>
