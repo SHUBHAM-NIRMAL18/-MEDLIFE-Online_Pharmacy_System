@@ -145,6 +145,46 @@ $active_page = basename($_SERVER['PHP_SELF']);
                 card.classList.remove('show');
             }
         }
+
+        function toggleWishlist(btn, event) {
+            if (event) event.preventDefault();
+            var icon = btn.querySelector('i');
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                if (icon) icon.className = 'bx bx-heart';
+                showDynamicToast('info', 'Wishlist', 'Item removed from your wishlist.');
+            } else {
+                btn.classList.add('active');
+                if (icon) icon.className = 'bx bxs-heart';
+                showDynamicToast('success', 'Wishlist', 'Item saved to your wishlist!');
+            }
+        }
+
+        function showDynamicToast(type, title, message) {
+            var container = document.getElementById('sessionToast');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'sessionToast';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            
+            var iconClass = type === 'success' ? 'bx-check-circle success' : 'bx-info-circle info';
+            var borderClass = type === 'success' ? 'success-border' : 'info-border';
+            
+            var toastHtml = document.createElement('div');
+            toastHtml.className = 'toast-card ' + borderClass;
+            toastHtml.innerHTML = '<div class="toast-icon ' + type + '"><i class="bx ' + iconClass + '"></i></div>' +
+                '<div class="toast-content"><div class="toast-title">' + title + '</div><div class="toast-message">' + message + '</div></div>' +
+                '<button class="toast-close" onclick="closeToast(this)"><i class="bx bx-x"></i></button>';
+                
+            container.appendChild(toastHtml);
+            setTimeout(function() { toastHtml.classList.add('show'); }, 50);
+            setTimeout(function() {
+                toastHtml.classList.remove('show');
+                setTimeout(function() { toastHtml.remove(); }, 400);
+            }, 3500);
+        }
       </script>
     <?php 
         unset($_SESSION['toast']);
