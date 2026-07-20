@@ -86,9 +86,9 @@ button, input, textarea, select {
 
 .content-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 20px;
 }
 
 .grid-3 {
@@ -263,7 +263,7 @@ h1, h2, h3, h4, h5, h6 {
 .promo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 16px;
 }
 
 .promo-card {
@@ -312,7 +312,7 @@ h1, h2, h3, h4, h5, h6 {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 24px;
+  gap: 16px;
   margin-top: 10px;
 }
 
