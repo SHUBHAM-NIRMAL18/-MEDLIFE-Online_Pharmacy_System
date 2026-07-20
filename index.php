@@ -209,107 +209,261 @@ include('header.php');
   </div>
 </section>
 
-<!-- Customer Reviews Slider Section -->
-<section class="review-section">
+<!-- Trust & Highlights Feature Section -->
+<section class="trust-section">
   <div class="content-container">
-    <h3 class="section-title" style="display: block; text-align: center; margin-bottom: 40px; margin-top: 0;">What Our Customers Say</h3>
-    
-    <div class="slider-wrapper">
-      <div class="review-slider">
-        
-        <div class="review-card">
-          <img src="img/vasline.jpg" alt="Customer Ajit">
-          <div class="review-content">
-            <h4 class="review-author">Ajit</h4>
-            <p class="review-text">"Excellent delivery speed and genuine medicines. I highly recommend Medlife to anyone looking for convenient online healthcare."</p>
-          </div>
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon-box">
+          <i class="bx bx-rocket"></i>
         </div>
-        
-        <div class="review-card">
-          <img src="img/vasline.jpg" alt="Customer Ram">
-          <div class="review-content">
-            <h4 class="review-author">Ram</h4>
-            <p class="review-text">"The feedback form and customer care is so helpful. I had questions about my supplement order and got immediate replies."</p>
-          </div>
+        <div class="trust-info">
+          <h4>Express Delivery</h4>
+          <p>Fast delivery across Patan & Kathmandu valley</p>
         </div>
-        
-        <div class="review-card">
-          <img src="img/vasline.jpg" alt="Customer Lakshman">
-          <div class="review-content">
-            <h4 class="review-author">Lakshman</h4>
-            <p class="review-text">"Ordering medical devices online used to be hard, but Medlife made it easy. Product quality is top notch."</p>
-          </div>
-        </div>
-        
-        <div class="review-card">
-          <img src="img/vasline.jpg" alt="Customer Nabin">
-          <div class="review-content">
-            <h4 class="review-author">Nabin</h4>
-            <p class="review-text">"Very reliable services. The payment options were clean and Patan campus map is exactly where they are based!"</p>
-          </div>
-        </div>
-        
-        <div class="review-card">
-          <img src="img/vasline.jpg" alt="Customer Manish">
-          <div class="review-content">
-            <h4 class="review-author">Manish</h4>
-            <p class="review-text">"I save 10% on my bills every month. A must-use online healthcare system for every family."</p>
-          </div>
-        </div>
-        
-        <div class="review-card">
-          <img src="img/vasline.jpg" alt="Customer Bipin">
-          <div class="review-content">
-            <h4 class="review-author">Bipin</h4>
-            <p class="review-text">"Their customer-first policy is clear in how fast they reply to emails. Medlife is my go-to shop now!"</p>
-          </div>
-        </div>
-        
       </div>
-      
-      <div class="slider-controls">
-        <button id="prev-btn" class="slider-nav-btn" aria-label="Previous review"><i class="bx bx-chevron-left"></i></button>
-        <button id="next-btn" class="slider-nav-btn" aria-label="Next review"><i class="bx bx-chevron-right"></i></button>
+
+      <div class="trust-card">
+        <div class="trust-icon-box">
+          <i class="bx bx-shield-quarter"></i>
+        </div>
+        <div class="trust-info">
+          <h4>100% Genuine</h4>
+          <p>Directly sourced certified medicines</p>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-icon-box">
+          <i class="bx bx-user-voice"></i>
+        </div>
+        <div class="trust-info">
+          <h4>Pharmacist Help</h4>
+          <p>24/7 prescription & healthcare support</p>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-icon-box">
+          <i class="bx bx-wallet"></i>
+        </div>
+        <div class="trust-info">
+          <h4>Easy Payments</h4>
+          <p>Cash on delivery & instant digital QR</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Review Slider Script -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var sliderContainer = document.querySelector('.review-slider');
-    var prevButton = document.getElementById('prev-btn');
-    var nextButton = document.getElementById('next-btn');
-    var reviewCards = document.querySelectorAll('.review-card');
-    
-    if (sliderContainer && prevButton && nextButton && reviewCards.length > 0) {
-      var currentIndex = 0;
+<!-- Continuous Infinite Marquee Customer Reviews Section -->
+<section class="marquee-review-section">
+  <div class="marquee-header">
+    <div class="section-subtitle">Real Customer Feedback</div>
+    <h3 class="section-title" style="margin: 0;">What Our Customers Say</h3>
+  </div>
 
-      prevButton.addEventListener('click', function() {
-        if (currentIndex > 0) {
-          currentIndex--;
-          updateSliderPosition();
-        }
-      });
+  <div class="marquee-track-container">
+    <div class="marquee-track">
+      
+      <!-- Review 1 -->
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box">
+              <div class="review-avatar-circle">A</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Ajit K.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"Excellent delivery speed and genuine medicines. I highly recommend Medlife to anyone looking for convenient online healthcare."</p>
+      </div>
 
-      nextButton.addEventListener('click', function() {
-        if (currentIndex < reviewCards.length - 1) {
-          currentIndex++;
-          updateSliderPosition();
-        }
-      });
+      <!-- Review 2 -->
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-blue">
+              <div class="review-avatar-circle">R</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Ram S.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"The feedback form and customer care is so helpful. I had questions about my supplement order and got immediate replies."</p>
+      </div>
 
-      function updateSliderPosition() {
-        var cardWidth = reviewCards[0].offsetWidth;
-        var gap = 20; // 20px gap defined in CSS margins
-        var newPosition = -currentIndex * (cardWidth + gap);
-        sliderContainer.style.transform = 'translateX(' + newPosition + 'px)';
-      }
+      <!-- Review 3 -->
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-teal">
+              <div class="review-avatar-circle">L</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Lakshman N.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"Ordering medical devices online used to be hard, but Medlife made it easy. Product quality is top notch."</p>
+      </div>
 
-      window.addEventListener('resize', updateSliderPosition);
-    }
-  });
-</script>
+      <!-- Review 4 -->
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-indigo">
+              <div class="review-avatar-circle">N</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Nabin P.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"Very reliable services. The payment options were clean and Patan campus location is super convenient!"</p>
+      </div>
+
+      <!-- Review 5 -->
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-purple">
+              <div class="review-avatar-circle">M</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Manish G.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"I save 10% on my bills every month. A must-use online healthcare system for every family."</p>
+      </div>
+
+      <!-- Duplicate Set for Seamless Continuous Loop -->
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box">
+              <div class="review-avatar-circle">A</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Ajit K.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"Excellent delivery speed and genuine medicines. I highly recommend Medlife to anyone looking for convenient online healthcare."</p>
+      </div>
+
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-blue">
+              <div class="review-avatar-circle">R</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Ram S.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"The feedback form and customer care is so helpful. I had questions about my supplement order and got immediate replies."</p>
+      </div>
+
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-teal">
+              <div class="review-avatar-circle">L</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Lakshman N.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"Ordering medical devices online used to be hard, but Medlife made it easy. Product quality is top notch."</p>
+      </div>
+
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-indigo">
+              <div class="review-avatar-circle">N</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Nabin P.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"Very reliable services. The payment options were clean and Patan campus location is super convenient!"</p>
+      </div>
+
+      <div class="marquee-card">
+        <div class="review-header-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="review-avatar-box avatar-purple">
+              <div class="review-avatar-circle">M</div>
+              <div class="review-quote-badge"><i class="bx bxs-quote-right"></i></div>
+            </div>
+            <div>
+              <h4 class="review-author">Manish G.</h4>
+              <span class="verified-buyer"><i class="bx bx-check-circle"></i> Verified Buyer</span>
+            </div>
+          </div>
+          <div class="review-rating">
+            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+          </div>
+        </div>
+        <p class="review-text">"I save 10% on my bills every month. A must-use online healthcare system for every family."</p>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 <?php include('footer.php'); ?>
