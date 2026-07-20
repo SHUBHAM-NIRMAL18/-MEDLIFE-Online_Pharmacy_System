@@ -151,3 +151,46 @@ $active_page = basename($_SERVER['PHP_SELF']);
     endif; 
     ?>
   </div>
+
+  <!-- Custom Logout Confirmation Modal Overlay -->
+  <div class="modal-overlay" id="confirmLogoutModal">
+      <div class="confirm-modal-card" style="max-width: 380px;">
+          <div class="confirm-modal-icon" style="color: var(--danger);">
+              <i class="bx bx-log-out-circle"></i>
+          </div>
+          <h4>End Session?</h4>
+          <p>Are you sure you want to log out of your Medlife account?</p>
+          <div class="confirm-modal-actions">
+              <button class="btn btn-outline" id="btnCancelLogout">Cancel</button>
+              <a href="user_logout.php" class="btn btn-primary" style="background-color: var(--danger); border-color: var(--danger);">Logout</a>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Intercept all customer logout links
+        var logoutLinks = document.querySelectorAll('a[href="user_logout.php"]');
+        var logoutModal = document.getElementById('confirmLogoutModal');
+        var cancelLogoutBtn = document.getElementById('btnCancelLogout');
+
+        if (logoutModal && cancelLogoutBtn) {
+            logoutLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    logoutModal.classList.add('show');
+                });
+            });
+
+            cancelLogoutBtn.addEventListener('click', function() {
+                logoutModal.classList.remove('show');
+            });
+
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal) {
+                    logoutModal.classList.remove('show');
+                }
+            });
+        }
+    });
+  </script>
