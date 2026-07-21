@@ -154,3 +154,113 @@
   border: 2px solid #ffffff;
   box-shadow: var(--shadow-sm);
 }
+
+.wishlist-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-main);
+  color: #ef4444;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  font-size: 20px;
+}
+
+.wishlist-icon-btn:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.wishlist-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Subcategory Hover Dropdown Styling */
+.nav-dropdown-item {
+  position: relative;
+}
+
+.dropdown-arrow {
+  font-size: 14px;
+  margin-left: 2px;
+  transition: transform 0.2s ease;
+  vertical-align: middle;
+}
+
+.nav-dropdown-item:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.nav-sub-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 10px 0;
+  list-style: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100;
+}
+
+.nav-dropdown-item:hover .nav-sub-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(4px);
+}
+
+.nav-sub-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.nav-sub-menu li a i {
+  font-size: 14px;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nav-sub-menu li a:hover {
+  background-color: #f0fdf4;
+  color: #059669;
+  padding-left: 22px;
+}
+
+.nav-sub-menu li a:hover i {
+  color: #059669;
+  transform: translateX(3px);
+}

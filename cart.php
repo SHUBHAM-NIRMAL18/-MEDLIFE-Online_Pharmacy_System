@@ -22,7 +22,12 @@ include('header.php');
             <a href="index.php" class="btn btn-primary">Continue Shopping</a>
         </div>
     <?php else: ?>
-        <h2 class="section-title">Shopping Cart</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <h2 class="section-title" style="margin: 0;">Shopping Cart</h2>
+            <a href="clear_cart.php" id="btnClearCart" class="btn btn-outline" style="color: #dc2626; border-color: rgba(220, 38, 38, 0.3); padding: 8px 16px; font-size: 13px; border-radius: 8px;">
+                <i class="bx bx-trash"></i> Clear All Cart
+            </a>
+        </div>
         
         <div class="cart-flex-container">
             <!-- Left Side: Staged Cart Items Table -->
@@ -142,6 +147,18 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.classList.add('show');
         });
     });
+
+    // Clear All Cart confirmation
+    var clearCartBtn = document.getElementById('btnClearCart');
+    if (clearCartBtn) {
+        clearCartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var href = this.getAttribute('href');
+            productNameSpan.textContent = "ALL items";
+            confirmLink.setAttribute('href', href);
+            modal.classList.add('show');
+        });
+    }
 
     // Close modal on Cancel
     cancelBtn.addEventListener('click', function() {
