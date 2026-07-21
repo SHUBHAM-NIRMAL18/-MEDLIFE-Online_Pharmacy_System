@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         $stmt_item = $conn->prepare("INSERT INTO tbl_orderitems (order_id, prdct_id, prdct_name, quantity, price) VALUES (?, ?, ?, ?, ?)");
                         if ($stmt_item) {
-                            $stmt_item->bind_param("iiisd", $order_id, $key_clean, $prdct_name, $qty, $prdct_price);
+                            $stmt_item->bind_param("iisid", $order_id, $key_clean, $prdct_name, $qty, $prdct_price);
                             $stmt_item->execute();
                             $stmt_item->close();
                         }
