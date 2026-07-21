@@ -1,7 +1,9 @@
 <?php 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-if (!isset($_SESSION['login_status'])) {
+if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($_SESSION['admin_id'])) {
   header('location:admin_login.php?msg=1');
   exit();
 }
@@ -84,7 +86,7 @@ if (!isset($_SESSION['login_status'])) {
         <h2>Admin Panel</h2>
       </div>
       <div class="topbar-right">
-        <span class="admin-name"><span>Welcome,</span> <?php echo htmlspecialchars($_SESSION['name'], ENT_QUOTES, 'UTF-8'); ?></span>
+        <span class="admin-name"><span>Welcome,</span> <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>
         <a href="admin_logout.php" class="topbar-logout">
           <i class="bx bx-log-out"></i> Logout
         </a>

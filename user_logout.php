@@ -4,10 +4,11 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Unset user sessions
+unset($_SESSION['user_login']);
+unset($_SESSION['user_id']);
 unset($_SESSION['email']);
 unset($_SESSION['name']);
 unset($_SESSION['login_status']);
-unset($_SESSION['user_id']);
 
 // Clear cookies
 setcookie('emailcookie', null, time() - 3600);

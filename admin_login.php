@@ -40,10 +40,18 @@ if (isset($_POST['login'])) {
                 $result = $stmt->get_result();
                 if ($result && $result->num_rows == 1) {
                     $row = $result->fetch_assoc();
-                    $_SESSION['email'] = $row['email'];
-                    $_SESSION['name'] = $row['name'];
-                    $_SESSION['login_status'] = true;
-                    $_SESSION['admin_id'] = $row['admin_id'];
+                    $_SESSION['admin_login'] = true;
+                    $_SESSION['admin_id'] = (int)$row['admin_id'];
+                    $_SESSION['admin_email'] = $row['email'];
+                    $_SESSION['admin_name'] = $row['name'];
+                    $_SESSION['admin_role'] = (int)$row['status'];
+                    
+                    // Unset any conflicting customer session keys
+                    unset($_SESSION['user_login']);
+                    unset($_SESSION['user_id']);
+                    unset($_SESSION['email']);
+                    unset($_SESSION['name']);
+                    unset($_SESSION['login_status']);
                     
                     $_SESSION['toast'] = [
                         'type' => 'success',

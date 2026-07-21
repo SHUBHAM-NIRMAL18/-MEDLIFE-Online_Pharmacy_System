@@ -40,10 +40,18 @@ if (isset($_POST['btnlogin'])) {
           if (session_status() === PHP_SESSION_NONE) {
             session_start();
           }
+          $_SESSION['user_login'] = true;
+          $_SESSION['user_id'] = (int)$row['user_id'];
           $_SESSION['email'] = $row['email'];
           $_SESSION['name'] = $row['name'];
           $_SESSION['login_status'] = true;
-          $_SESSION['user_id'] = $row['user_id'];
+          
+          // Unset any conflicting admin session keys
+          unset($_SESSION['admin_login']);
+          unset($_SESSION['admin_id']);
+          unset($_SESSION['admin_email']);
+          unset($_SESSION['admin_name']);
+          unset($_SESSION['admin_role']);
           
           $_SESSION['toast'] = [
               'type' => 'success',

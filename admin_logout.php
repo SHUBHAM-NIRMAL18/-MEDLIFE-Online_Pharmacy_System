@@ -4,16 +4,17 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Unset admin sessions
-unset($_SESSION['email']);
-unset($_SESSION['name']);
-unset($_SESSION['login_status']);
+unset($_SESSION['admin_login']);
 unset($_SESSION['admin_id']);
+unset($_SESSION['admin_email']);
+unset($_SESSION['admin_name']);
+unset($_SESSION['admin_role']);
 
-// Clear cookies
-setcookie('emailcookie', null, time() - 3600);
-setcookie('email', null, time() - 3600);
-setcookie('name', null, time() - 3600);
-setcookie('admin_id', null, time() - 3600);
+// Clear cookies if any
+setcookie('emailcookie', '', time() - 3600);
+setcookie('email', '', time() - 3600);
+setcookie('name', '', time() - 3600);
+setcookie('admin_id', '', time() - 3600);
 
 $_SESSION['toast'] = [
     'type' => 'info',
