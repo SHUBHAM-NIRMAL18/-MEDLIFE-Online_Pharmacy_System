@@ -127,6 +127,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnOrder'])) {
                             $stmt_item->execute();
                             $stmt_item->close();
                         }
+
+                        // Automatically deduct stock inventory
+                        $stmt_stock = $conn->prepare("UPDATE tbl_products SET stock_quantity = GREATEST(0, stock_quantity - ?) WHERE prdct_id = ?");
+                        if ($stmt_stock) {
+                            $stmt_stock->bind_param("ii", $qty, $key_clean);
+                            $stmt_stock->execute();
+                            $stmt_stock->close();
+                        }
                     }
                 }
 

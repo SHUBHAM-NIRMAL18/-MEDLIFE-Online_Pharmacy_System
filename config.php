@@ -56,7 +56,38 @@ if (!function_exists('get_db_connection')) {
             if ($conn->connect_error) {
                 die("Database connection failed: " . $conn->connect_error);
             }
+            ensure_product_stock_column($conn);
+            ensure_category_parent_column($conn);
         }
         return $conn;
     }
 }
+
+// Helper to ensure stock_quantity column exists in tbl_products
+if (!function_exists('ensure_product_stock_column')) {
+    function ensure_product_stock_column($conn) {
+        static $checked = false;
+        if (!$checked) {
+            $check = $conn->query("SHOW COLUMNS FROM tbl_products LIKE 'stock_quantity'");
+            if ($check && $check->num_rows === 0) {
+                @$conn->query("ALTER TABLE tbl_products ADD COLUMN stock_quantity INT NOT NULL DEFAULT 50");
+            }
+            $checked = true;
+        }
+    }
+}
+
+// Helper to ensure parent_id column exists in tbl_categories
+if (!function_exists('ensure_category_parent_column')) {
+    function ensure_category_parent_column($conn) {
+        static $checked = false;
+        if (!$checked) {
+            $check = $conn->query("SHOW COLUMNS FROM tbl_categories LIKE 'parent_id'");
+            if ($check && $check->num_rows === 0) {
+                @$conn->query("ALTER TABLE tbl_categories ADD COLUMN parent_id INT NOT NULL DEFAULT 0");
+            }
+            $checked = true;
+        }
+    }
+}
+

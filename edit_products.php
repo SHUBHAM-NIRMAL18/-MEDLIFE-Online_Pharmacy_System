@@ -1,6 +1,5 @@
 <?php 
 require_once 'config.php';
-include_once 'dashboard.php';
 
 if (!isset($_GET['prdct_id']) || !is_numeric($_GET['prdct_id'])) {
     header("Location: view_products.php?msg=1");
@@ -11,7 +10,7 @@ $id = (int)$_GET['prdct_id'];
 $err = [];
 $conn = get_db_connection();
 
-// Process Product Update
+// Process Product Update BEFORE rendering HTML / including dashboard.php
 if (isset($_POST['btnUpdate'])) {
     $prdct_name = isset($_POST['prdct_name']) ? trim($_POST['prdct_name']) : '';
     $prdct_company = isset($_POST['prdct_company']) ? trim($_POST['prdct_company']) : '';
@@ -20,6 +19,7 @@ if (isset($_POST['btnUpdate'])) {
     $exp_date = isset($_POST['exp_date']) ? trim($_POST['exp_date']) : '';
     $cat_id = isset($_POST['cat_id']) ? (int)$_POST['cat_id'] : 0;
     $old_image = isset($_POST['old_image']) ? trim($_POST['old_image']) : '';
+    $stock_quantity = isset($_POST['stock_quantity']) ? max(0, (int)$_POST['stock_quantity']) : 50;
 
     if (empty($prdct_name)) {
         $err['prdct_name'] = 'Please enter the product name';
@@ -66,9 +66,9 @@ if (isset($_POST['btnUpdate'])) {
     }
 
     if (count($err) === 0) {
-        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ? WHERE prdct_id = ?");
+        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ?, stock_quantity = ? WHERE prdct_id = ?");
         if ($stmt) {
-            $stmt->bind_param("ssdssisi", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $id);
+            $stmt->bind_param("ssdssisii", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $stock_quantity, $id);
             $stmt->execute();
             $stmt->close();
             header("Location: view_products.php?updated=1");
@@ -97,14 +97,29 @@ if (!$product) {
     exit();
 }
 
-// Fetch Categories List
-$categories = [];
-$cat_res = $conn->query("SELECT * FROM tbl_categories ORDER BY cat_name ASC");
-if ($cat_res && $cat_res->num_rows > 0) {
-    while ($row = $cat_res->fetch_assoc()) {
-        $categories[] = $row;
+// Helper to fetch category options with indentation
+function get_category_options($conn, $parent = 0, $indent = "", $selected = 0) {
+    $html = "";
+    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? ORDER BY cat_name ASC");
+    if ($stmt) {
+        $stmt->bind_param("i", $parent);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $is_sel = ($row['cat_id'] == $selected) ? "selected" : "";
+                $prefix = !empty($indent) ? $indent . "└─ " : "";
+                $html .= '<option value="' . $row['cat_id'] . '" ' . $is_sel . '>' . $prefix . htmlspecialchars($row['cat_name'], ENT_QUOTES, 'UTF-8') . '</option>';
+                $html .= get_category_options($conn, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected);
+            }
+        }
+        $stmt->close();
     }
+    return $html;
 }
+
+// NOW include dashboard HTML
+include_once 'dashboard.php';
 ?>
 
 <!-- Include Dedicated Product CSS -->
@@ -129,7 +144,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
     <div class="product-page-header">
         <div>
             <h1><i class="bx bx-edit" style="color: var(--admin-accent, #059669);"></i> Edit Product</h1>
-            <p>Update specifications, pricing, and packaging image for Product #<?php echo $id; ?>.</p>
+            <p>Update specifications, pricing, inventory stock, and packaging image for Product #<?php echo $id; ?>.</p>
         </div>
         <a href="view_products.php" class="btn-secondary">
             <i class="bx bx-arrow-back"></i> Back to Products
@@ -155,7 +170,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
             <form action="edit_products.php?prdct_id=<?php echo $id; ?>" method="POST" enctype="multipart/form-data" autocomplete="off">
                 <input type="hidden" name="old_image" value="<?php echo htmlspecialchars($product['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>">
 
-                <!-- Product Name -->
+                <!-- Product Name (Full Width) -->
                 <div class="form-group">
                     <label for="prdct_name" class="form-label">
                         Product Name <span class="required">*</span>
@@ -176,7 +191,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                     <?php endif; ?>
                 </div>
 
-                <!-- Company & Category (Row) -->
+                <!-- Row 1: Company & Category -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="prdct_company" class="form-label">
@@ -206,11 +221,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                             <i class="bx bx-category"></i>
                             <select id="cat_id" name="cat_id" class="form-select" required>
                                 <option value="" disabled>Select Category</option>
-                                <?php foreach ($categories as $c): ?>
-                                    <option value="<?php echo $c['cat_id']; ?>" <?php echo $product['cat_id'] == $c['cat_id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($c['cat_name'], ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
+                                <?php echo get_category_options($conn, 0, "", $product['cat_id']); ?>
                             </select>
                         </div>
                         <?php if (isset($err['cat_id'])): ?>
@@ -221,7 +232,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                     </div>
                 </div>
 
-                <!-- Price, Manufacture Date & Expiry Date (Row) -->
+                <!-- Row 2: Price & Stock Quantity -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="prdct_price" class="form-label">
@@ -246,6 +257,25 @@ if ($cat_res && $cat_res->num_rows > 0) {
                     </div>
 
                     <div class="form-group">
+                        <label for="stock_quantity" class="form-label">
+                            Stock Quantity (Units) <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-layer"></i>
+                            <input type="number" 
+                                   min="0" 
+                                   id="stock_quantity" 
+                                   name="stock_quantity" 
+                                   class="form-control" 
+                                   value="<?php echo isset($product['stock_quantity']) ? (int)$product['stock_quantity'] : 50; ?>"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Manufactured Date & Expiry Date -->
+                <div class="form-row">
+                    <div class="form-group">
                         <label for="manf_date" class="form-label">
                             Manufactured Date <span class="required">*</span>
                         </label>
@@ -264,10 +294,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                             </div>
                         <?php endif; ?>
                     </div>
-                </div>
 
-                <!-- Expiry Date & Change Image File (Row) -->
-                <div class="form-row">
                     <div class="form-group">
                         <label for="exp_date" class="form-label">
                             Expiry Date <span class="required">*</span>
@@ -287,27 +314,28 @@ if ($cat_res && $cat_res->num_rows > 0) {
                             </div>
                         <?php endif; ?>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label class="form-label">
-                            Replace Product Image (Optional)
-                        </label>
-                        <div class="file-upload-box">
-                            <i class="bx bx-cloud-upload file-upload-icon"></i>
-                            <div class="file-upload-text" id="fileNameDisplay">Choose New Image</div>
-                            <div class="file-upload-hint">Leave blank to keep existing image</div>
-                            <input type="file" 
-                                   name="new_image" 
-                                   id="newImageInput" 
-                                   accept="image/*"
-                                   onchange="updateFileName(this)">
-                        </div>
-                        <?php if (isset($err['image'])): ?>
-                            <div class="field-error">
-                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['image'], ENT_QUOTES, 'UTF-8'); ?>
-                            </div>
-                        <?php endif; ?>
+                <!-- Row 4: Replace Product Image (Full Width) -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Replace Product Image (Optional)
+                    </label>
+                    <div class="file-upload-box">
+                        <i class="bx bx-cloud-upload file-upload-icon"></i>
+                        <div class="file-upload-text" id="fileNameDisplay">Choose New Image</div>
+                        <div class="file-upload-hint">Leave blank to keep existing image</div>
+                        <input type="file" 
+                               name="new_image" 
+                               id="newImageInput" 
+                               accept="image/*"
+                               onchange="updateFileName(this)">
                     </div>
+                    <?php if (isset($err['image'])): ?>
+                        <div class="field-error">
+                            <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['image'], ENT_QUOTES, 'UTF-8'); ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Form Actions -->
@@ -340,7 +368,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
                     <?php echo htmlspecialchars($product['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
-                    Price: <strong>रु. <?php echo number_format($product['prdct_price'], 2); ?></strong>
+                    Price: <strong>रु. <?php echo number_format($product['prdct_price'], 2); ?></strong> • Stock: <strong><?php echo (int)($product['stock_quantity'] ?? 50); ?> units</strong>
                 </div>
             </div>
 

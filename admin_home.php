@@ -33,6 +33,19 @@ if ($res) {
     $totalRevenue = !empty($row['rev']) ? (float)$row['rev'] : 0.00; 
 }
 
+// Fetch Low Stock Count & Items
+$lowStockCount = 0;
+$lowStockItems = [];
+$ls_cnt_res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_products WHERE stock_quantity <= 10");
+if ($ls_cnt_res) { $lowStockCount = (int)$ls_cnt_res->fetch_assoc()['cnt']; }
+
+$ls_items_res = $conn->query("SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id WHERE p.stock_quantity <= 10 ORDER BY p.stock_quantity ASC LIMIT 4");
+if ($ls_items_res && $ls_items_res->num_rows > 0) {
+    while ($l = $ls_items_res->fetch_assoc()) {
+        $lowStockItems[] = $l;
+    }
+}
+
 // Fetch Top Brands / Manufacturers
 $topBrands = [];
 $maxBrandCount = 1;
@@ -80,7 +93,7 @@ if ($orderRes && $orderRes->num_rows > 0) {
     <div class="admin-page-header">
         <div>
             <h1><i class="bx bx-grid-alt" style="color: var(--admin-accent, #059669);"></i> Pharmacy Analytics Overview</h1>
-            <p>Welcome back, <strong><?php echo htmlspecialchars($_SESSION['name'], ENT_QUOTES, 'UTF-8'); ?></strong>. Here is your real-time store performance and inventory analysis.</p>
+            <p>Welcome back, <strong><?php echo htmlspecialchars($_SESSION['admin_name'] ?? $_SESSION['name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></strong>. Here is your real-time store performance and inventory analysis.</p>
         </div>
     </div>
 
@@ -312,6 +325,39 @@ if ($orderRes && $orderRes->num_rows > 0) {
                     </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Low Stock / Reorder Warning Widget -->
+            <?php if ($lowStockCount > 0): ?>
+                <div class="admin-card" style="padding: 20px 22px; border-left: 4px solid #d97706;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #92400e; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="bx bx-error" style="color: #d97706; font-size: 20px;"></i> Low Stock Alerts
+                        </h3>
+                        <a href="view_products.php?stock=low" style="font-size: 11.5px; font-weight: 600; color: #d97706; text-decoration: none;">
+                            View All (<?php echo $lowStockCount; ?>)
+                        </a>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <?php foreach ($lowStockItems as $ls): ?>
+                            <?php $sq = (int)$ls['stock_quantity']; ?>
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #fffbe0; border-radius: 8px; border: 1px solid #fde68a;">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.2;">
+                                        <?php echo htmlspecialchars($ls['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>
+                                    </div>
+                                    <div style="font-size: 11px; color: #b45309;">
+                                        <?php echo $sq <= 0 ? 'Out of Stock (0)' : 'Only ' . $sq . ' units remaining'; ?>
+                                    </div>
+                                </div>
+                                <a href="edit_products.php?prdct_id=<?php echo $ls['prdct_id']; ?>" class="action-btn edit" style="width: 28px; height: 28px; font-size: 14px;" title="Restock Item">
+                                    <i class="bx bx-plus"></i>
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Quick Management Action Shortcuts -->
             <div class="admin-card" style="padding: 20px 22px;">

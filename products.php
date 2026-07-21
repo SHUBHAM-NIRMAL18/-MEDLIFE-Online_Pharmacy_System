@@ -5,16 +5,29 @@ include_once 'dashboard.php';
 $success = '';
 $err = [];
 $name = $company = $price = $manufactured = $expiry = $cat_id = '';
+$stock_quantity = 50;
 
 $conn = get_db_connection();
 
-// Fetch categories for select dropdown
-$categories = [];
-$cat_res = $conn->query("SELECT * FROM tbl_categories ORDER BY cat_name ASC");
-if ($cat_res && $cat_res->num_rows > 0) {
-    while ($row = $cat_res->fetch_assoc()) {
-        $categories[] = $row;
+// Helper to fetch category options with indentation
+function get_category_options($conn, $parent = 0, $indent = "", $selected = 0) {
+    $html = "";
+    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? ORDER BY cat_name ASC");
+    if ($stmt) {
+        $stmt->bind_param("i", $parent);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $is_sel = ($row['cat_id'] == $selected) ? "selected" : "";
+                $prefix = !empty($indent) ? $indent . "└─ " : "";
+                $html .= '<option value="' . $row['cat_id'] . '" ' . $is_sel . '>' . $prefix . htmlspecialchars($row['cat_name'], ENT_QUOTES, 'UTF-8') . '</option>';
+                $html .= get_category_options($conn, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected);
+            }
+        }
+        $stmt->close();
     }
+    return $html;
 }
 
 // Process Add Product Submission
@@ -66,6 +79,12 @@ if (isset($_POST['btnAdd'])) {
         $err['category'] = 'Please select a category type';
     }
 
+    if (isset($_POST['stock_quantity']) && $_POST['stock_quantity'] !== '') {
+        $stock_quantity = max(0, (int)$_POST['stock_quantity']);
+    } else {
+        $stock_quantity = 50;
+    }
+
     // Image Upload Handling
     $image_filename = '';
     if (isset($_FILES['image']) && !empty($_FILES['image']['name'])) {
@@ -74,7 +93,6 @@ if (isset($_POST['btnAdd'])) {
         
         if (in_array(strtolower($file_type), $allowed_types)) {
             $raw_name = basename($_FILES['image']['name']);
-            // Generate clean unique filename
             $ext = pathinfo($raw_name, PATHINFO_EXTENSION);
             $image_filename = 'prod_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
             
@@ -96,28 +114,22 @@ if (isset($_POST['btnAdd'])) {
 
     // Insert into Database if no errors
     if (count($err) === 0) {
-        $stmt = $conn->prepare("INSERT INTO tbl_products (prdct_name, prdct_company, prdct_price, manf_date, exp_date, prdct_img, cat_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO tbl_products (prdct_name, prdct_company, prdct_price, manf_date, exp_date, prdct_img, cat_id, stock_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         if ($stmt) {
-            $stmt->bind_param("ssdsssi", $name, $company, $price, $manufactured, $expiry, $image_filename, $cat_id);
+            $stmt->bind_param("ssdsssii", $name, $company, $price, $manufactured, $expiry, $image_filename, $cat_id, $stock_quantity);
             $stmt->execute();
             if ($stmt->affected_rows === 1 && $stmt->insert_id > 0) {
                 $success = 'Product added successfully!';
                 $name = $company = $price = $manufactured = $expiry = $cat_id = '';
+                $stock_quantity = 50;
             } else {
                 $err['general'] = 'Error saving product into database.';
             }
             $stmt->close();
         } else {
-            $err['general'] = 'Database preparation error.';
+            $err['general'] = 'Failed to prepare database query.';
         }
     }
-}
-
-// Count total products for sidebar widget
-$total_products = 0;
-$prod_count_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_products");
-if ($prod_count_res) {
-    $total_products = (int)$prod_count_res->fetch_assoc()['total'];
 }
 ?>
 
@@ -142,21 +154,21 @@ if ($prod_count_res) {
     <!-- Page Header -->
     <div class="product-page-header">
         <div>
-            <h1><i class="bx bx-package" style="color: var(--admin-accent, #059669);"></i> Add New Product</h1>
-            <p>Add medicines, clinical equipment, or supplements to your pharmacy catalog.</p>
+            <h1><i class="bx bx-plus-circle" style="color: var(--admin-accent, #059669);"></i> Add New Product</h1>
+            <p>Enter pharmaceutical specifications, pricing, inventory stock, and packaging image.</p>
         </div>
         <a href="view_products.php" class="btn-secondary">
-            <i class="bx bx-list-ul"></i> Manage Products
+            <i class="bx bx-arrow-back"></i> View Catalog
         </a>
     </div>
 
     <!-- Main 2-Column Grid -->
     <div class="product-grid">
 
-        <!-- Left Column: Product Entry Form -->
+        <!-- Left Column: Form Card -->
         <div class="product-card">
             <div class="product-card-header">
-                <h3><i class="bx bx-edit"></i> Product Specifications</h3>
+                <h3><i class="bx bx-capsule"></i> Product Specifications</h3>
             </div>
 
             <?php if (!empty($success)): ?>
@@ -175,7 +187,7 @@ if ($prod_count_res) {
 
             <form action="products.php" method="POST" enctype="multipart/form-data" autocomplete="off">
                 
-                <!-- Product Name -->
+                <!-- Product Name (Full Width) -->
                 <div class="form-group">
                     <label for="name" class="form-label">
                         Product Name <span class="required">*</span>
@@ -186,8 +198,9 @@ if ($prod_count_res) {
                                id="name" 
                                name="name" 
                                class="form-control" 
-                               placeholder="e.g. Paracetamol 500mg, Omeprazole 20mg" 
-                               value="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
+                               placeholder="e.g. Paracetamol 500mg Tablets" 
+                               value="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>"
+                               required>
                     </div>
                     <?php if (isset($err['name'])): ?>
                         <div class="field-error">
@@ -196,7 +209,7 @@ if ($prod_count_res) {
                     <?php endif; ?>
                 </div>
 
-                <!-- Company & Category (Row) -->
+                <!-- Row 1: Company & Category -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="company" class="form-label">
@@ -208,8 +221,9 @@ if ($prod_count_res) {
                                    id="company" 
                                    name="company" 
                                    class="form-control" 
-                                   placeholder="e.g. Square Pharma, Pfizer" 
-                                   value="<?php echo htmlspecialchars($company, ENT_QUOTES, 'UTF-8'); ?>">
+                                   placeholder="e.g. Cipla Healthcare" 
+                                   value="<?php echo htmlspecialchars($company, ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
                         </div>
                         <?php if (isset($err['company'])): ?>
                             <div class="field-error">
@@ -224,13 +238,9 @@ if ($prod_count_res) {
                         </label>
                         <div class="input-icon-wrapper">
                             <i class="bx bx-category"></i>
-                            <select id="category" name="category" class="form-select">
+                            <select id="category" name="category" class="form-select" required>
                                 <option value="" disabled <?php echo empty($cat_id) ? 'selected' : ''; ?>>Select Category</option>
-                                <?php foreach ($categories as $c): ?>
-                                    <option value="<?php echo $c['cat_id']; ?>" <?php echo $cat_id == $c['cat_id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($c['cat_name'], ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
+                                <?php echo get_category_options($conn, 0, "", $cat_id); ?>
                             </select>
                         </div>
                         <?php if (isset($err['category'])): ?>
@@ -241,7 +251,7 @@ if ($prod_count_res) {
                     </div>
                 </div>
 
-                <!-- Price, Manufacture Date & Expiry Date (Row) -->
+                <!-- Row 2: Price & Stock Quantity -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="price" class="form-label">
@@ -256,7 +266,8 @@ if ($prod_count_res) {
                                    name="price" 
                                    class="form-control" 
                                    placeholder="0.00" 
-                                   value="<?php echo htmlspecialchars($price, ENT_QUOTES, 'UTF-8'); ?>">
+                                   value="<?php echo htmlspecialchars($price, ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
                         </div>
                         <?php if (isset($err['price'])): ?>
                             <div class="field-error">
@@ -265,6 +276,26 @@ if ($prod_count_res) {
                         <?php endif; ?>
                     </div>
 
+                    <div class="form-group">
+                        <label for="stock_quantity" class="form-label">
+                            Stock Quantity (Units) <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-layer"></i>
+                            <input type="number" 
+                                   min="0" 
+                                   id="stock_quantity" 
+                                   name="stock_quantity" 
+                                   class="form-control" 
+                                   placeholder="e.g. 50" 
+                                   value="<?php echo isset($stock_quantity) ? (int)$stock_quantity : 50; ?>"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Manufactured Date & Expiry Date -->
+                <div class="form-row">
                     <div class="form-group">
                         <label for="manufactured" class="form-label">
                             Manufactured Date <span class="required">*</span>
@@ -275,7 +306,8 @@ if ($prod_count_res) {
                                    id="manufactured" 
                                    name="manufactured" 
                                    class="form-control" 
-                                   value="<?php echo htmlspecialchars($manufactured, ENT_QUOTES, 'UTF-8'); ?>">
+                                   value="<?php echo htmlspecialchars($manufactured, ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
                         </div>
                         <?php if (isset($err['manufactured'])): ?>
                             <div class="field-error">
@@ -283,10 +315,7 @@ if ($prod_count_res) {
                             </div>
                         <?php endif; ?>
                     </div>
-                </div>
 
-                <!-- Expiry Date & Product Image (Row) -->
-                <div class="form-row">
                     <div class="form-group">
                         <label for="expiry" class="form-label">
                             Expiry Date <span class="required">*</span>
@@ -297,7 +326,8 @@ if ($prod_count_res) {
                                    id="expiry" 
                                    name="expiry" 
                                    class="form-control" 
-                                   value="<?php echo htmlspecialchars($expiry, ENT_QUOTES, 'UTF-8'); ?>">
+                                   value="<?php echo htmlspecialchars($expiry, ENT_QUOTES, 'UTF-8'); ?>"
+                                   required>
                         </div>
                         <?php if (isset($err['expiry'])): ?>
                             <div class="field-error">
@@ -305,27 +335,29 @@ if ($prod_count_res) {
                             </div>
                         <?php endif; ?>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label class="form-label">
-                            Product Image <span class="required">*</span>
-                        </label>
-                        <div class="file-upload-box">
-                            <i class="bx bx-cloud-upload file-upload-icon"></i>
-                            <div class="file-upload-text" id="fileNameDisplay">Choose Image File</div>
-                            <div class="file-upload-hint">JPG, PNG or WEBP (Max 5MB)</div>
-                            <input type="file" 
-                                   name="image" 
-                                   id="productImageInput" 
-                                   accept="image/*"
-                                   onchange="updateFileName(this)">
-                        </div>
-                        <?php if (isset($err['image'])): ?>
-                            <div class="field-error">
-                                <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['image'], ENT_QUOTES, 'UTF-8'); ?>
-                            </div>
-                        <?php endif; ?>
+                <!-- Row 4: Product Image Upload (Full Width) -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Product Packaging Image <span class="required">*</span>
+                    </label>
+                    <div class="file-upload-box">
+                        <i class="bx bx-cloud-upload file-upload-icon"></i>
+                        <div class="file-upload-text" id="fileNameDisplay">Click or drag image here to upload</div>
+                        <div class="file-upload-hint">Supported formats: JPG, PNG, WEBP (Max 5MB)</div>
+                        <input type="file" 
+                               name="image" 
+                               id="imageInput" 
+                               accept="image/*" 
+                               required 
+                               onchange="updateFileName(this)">
                     </div>
+                    <?php if (isset($err['image'])): ?>
+                        <div class="field-error">
+                            <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['image'], ENT_QUOTES, 'UTF-8'); ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Form Actions -->
@@ -341,40 +373,35 @@ if ($prod_count_res) {
             </form>
         </div>
 
-        <!-- Right Column: Sidebar Guidelines & Total Stats -->
+        <!-- Right Column: Sidebar Guidelines -->
         <div class="product-card product-tips-card">
-            <h4><i class="bx bx-bulb"></i> Product Guidelines</h4>
-            
+            <h4><i class="bx bx-bulb"></i> Product Entry Tips</h4>
             <ul class="tips-list">
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>Clear Product Titles:</strong> Include dosage/strength (e.g., <em>500mg</em> or <em>10ml</em>) for customer clarity.
+                        <strong>Product Title:</strong> Include dosage form (e.g., Tablets, Syrup, Ointment, Injection) for clear catalog indexing.
                     </div>
                 </li>
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>Date Verification:</strong> Double check expiry dates before publishing pharmacy products.
+                        <strong>Category:</strong> Assign accurate category so products display correctly under Medicine, Supplement, or Device filters.
                     </div>
                 </li>
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>High Quality Images:</strong> Upload clean product packaging images for higher customer conversion.
+                        <strong>Expiry Date:</strong> Set valid expiry dates to ensure quality safety checks.
+                    </div>
+                </li>
+                <li>
+                    <i class="bx bx-check-shield"></i>
+                    <div>
+                        <strong>Stock Control:</strong> Set initial inventory units. System will auto-warn when stock reaches 10 units or lower.
                     </div>
                 </li>
             </ul>
-
-            <div class="quick-stats-box" style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
-                <div class="quick-stats-info">
-                    <div style="font-size: 12px; color: #64748b; font-weight: 500;">Total Active Products</div>
-                    <strong style="font-size: 18px; color: #0f172a; font-weight: 700;"><?php echo $total_products; ?> Products</strong>
-                </div>
-                <a href="view_products.php" class="btn-secondary" style="height: 38px; padding: 0 14px; font-size: 13px;">
-                    View All
-                </a>
-            </div>
         </div>
 
     </div>
@@ -387,7 +414,7 @@ if ($prod_count_res) {
         if (input.files && input.files[0]) {
             display.textContent = input.files[0].name;
         } else {
-            display.textContent = 'Choose Image File';
+            display.textContent = 'Click or drag image here to upload';
         }
     }
 </script>

@@ -4,8 +4,9 @@ include_once 'dashboard.php';
 
 $conn = get_db_connection();
 
-// Category Filter & Pagination Settings
+// Category, Stock Filter & Pagination Settings
 $cat_filter = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
+$stock_filter = isset($_GET['stock']) ? trim($_GET['stock']) : '';
 $page = isset($_GET['page']) && (int)$_GET['page'] > 0 ? (int)$_GET['page'] : 1;
 $limit = 8; // Items per page
 $offset = ($page - 1) * $limit;
@@ -19,12 +20,32 @@ if ($cat_res && $cat_res->num_rows > 0) {
     }
 }
 
+// Build dynamic WHERE clause
+$where = [];
+$count_params = [];
+$count_types = "";
+
+if ($cat_filter > 0) {
+    $where[] = "p.cat_id = ?";
+    $count_params[] = $cat_filter;
+    $count_types .= "i";
+}
+
+if ($stock_filter === 'low') {
+    $where[] = "p.stock_quantity > 0 AND p.stock_quantity <= 10";
+} elseif ($stock_filter === 'out') {
+    $where[] = "p.stock_quantity <= 0";
+}
+
+$where_sql = count($where) > 0 ? " WHERE " . implode(" AND ", $where) : "";
+
 // Count total matching records
 $total_records = 0;
-if ($cat_filter > 0) {
-    $count_stmt = $conn->prepare("SELECT COUNT(*) AS total FROM tbl_products WHERE cat_id = ?");
+$count_query = "SELECT COUNT(*) AS total FROM tbl_products p" . $where_sql;
+if (count($count_params) > 0) {
+    $count_stmt = $conn->prepare($count_query);
     if ($count_stmt) {
-        $count_stmt->bind_param("i", $cat_filter);
+        $count_stmt->bind_param($count_types, ...$count_params);
         $count_stmt->execute();
         $res = $count_stmt->get_result();
         if ($res) {
@@ -33,7 +54,7 @@ if ($cat_filter > 0) {
         $count_stmt->close();
     }
 } else {
-    $count_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_products");
+    $count_res = $conn->query($count_query);
     if ($count_res) {
         $total_records = (int)$count_res->fetch_assoc()['total'];
     }
@@ -47,41 +68,23 @@ if ($page > $total_pages) {
 
 // Fetch paginated products
 $products = [];
-if ($cat_filter > 0) {
-    $stmt = $conn->prepare("SELECT p.*, c.cat_name 
-                            FROM tbl_products p 
-                            LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id 
-                            WHERE p.cat_id = ? 
-                            ORDER BY p.prdct_id DESC 
-                            LIMIT ? OFFSET ?");
-    if ($stmt) {
-        $stmt->bind_param("iii", $cat_filter, $limit, $offset);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($res) {
-            while ($row = $res->fetch_assoc()) {
-                $products[] = $row;
-            }
+$data_query = "SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id" . $where_sql . " ORDER BY p.prdct_id DESC LIMIT ? OFFSET ?";
+$data_params = $count_params;
+$data_params[] = $limit;
+$data_params[] = $offset;
+$data_types = $count_types . "ii";
+
+$stmt = $conn->prepare($data_query);
+if ($stmt) {
+    $stmt->bind_param($data_types, ...$data_params);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $products[] = $row;
         }
-        $stmt->close();
     }
-} else {
-    $stmt = $conn->prepare("SELECT p.*, c.cat_name 
-                            FROM tbl_products p 
-                            LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id 
-                            ORDER BY p.prdct_id DESC 
-                            LIMIT ? OFFSET ?");
-    if ($stmt) {
-        $stmt->bind_param("ii", $limit, $offset);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($res) {
-            while ($row = $res->fetch_assoc()) {
-                $products[] = $row;
-            }
-        }
-        $stmt->close();
-    }
+    $stmt->close();
 }
 
 $start_item = $total_records > 0 ? $offset + 1 : 0;
@@ -142,12 +145,12 @@ $end_item = min($offset + $limit, $total_records);
         <div class="table-header-toolbar">
             <h3>
                 <i class="bx bx-package"></i> 
-                <?php echo $cat_filter > 0 ? 'Filtered Products' : 'All Products'; ?> 
+                <?php echo ($cat_filter > 0 || !empty($stock_filter)) ? 'Filtered Products' : 'All Products'; ?> 
                 (<?php echo $total_records; ?>)
             </h3>
 
-            <!-- Category Filter Dropdown -->
-            <form action="view_products.php" method="GET" style="display: flex; align-items: center; gap: 10px;">
+            <!-- Category & Stock Filter Controls -->
+            <form action="view_products.php" method="GET" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <div class="input-icon-wrapper" style="width: auto;">
                     <i class="bx bx-filter-alt" style="left: 12px; font-size: 16px;"></i>
                     <select name="cat" class="form-select" onchange="this.form.submit()" style="height: 38px; padding-left: 36px; padding-right: 32px; font-size: 13.5px; width: auto;">
@@ -159,7 +162,17 @@ $end_item = min($offset + $limit, $total_records);
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <?php if ($cat_filter > 0): ?>
+
+                <div class="input-icon-wrapper" style="width: auto;">
+                    <i class="bx bx-layer" style="left: 12px; font-size: 16px;"></i>
+                    <select name="stock" class="form-select" onchange="this.form.submit()" style="height: 38px; padding-left: 36px; padding-right: 32px; font-size: 13.5px; width: auto;">
+                        <option value="">All Stock Levels</option>
+                        <option value="low" <?php echo $stock_filter === 'low' ? 'selected' : ''; ?>>⚠️ Low Stock (<= 10)</option>
+                        <option value="out" <?php echo $stock_filter === 'out' ? 'selected' : ''; ?>>❌ Out of Stock (0)</option>
+                    </select>
+                </div>
+
+                <?php if ($cat_filter > 0 || !empty($stock_filter)): ?>
                     <a href="view_products.php" class="btn-secondary" style="height: 38px; padding: 0 14px; font-size: 13px;">
                         <i class="bx bx-reset"></i> Reset
                     </a>
@@ -177,6 +190,7 @@ $end_item = min($offset + $limit, $total_records);
                             <th>Product Info</th>
                             <th>Manufacturer</th>
                             <th>Price</th>
+                            <th>Stock Status</th>
                             <th>Mfg Date</th>
                             <th>Exp Date</th>
                             <th style="width: 130px; text-align: center;">Actions</th>
@@ -214,6 +228,18 @@ $end_item = min($offset + $limit, $total_records);
                                         रु. <?php echo number_format($p['prdct_price'], 2); ?>
                                     </span>
                                 </td>
+                                <td>
+                                    <?php 
+                                    $sq = (int)($p['stock_quantity'] ?? 50);
+                                    if ($sq <= 0) {
+                                        echo '<span class="status-badge inactive" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"><span class="status-dot" style="background: #dc2626;"></span> Out of Stock (0)</span>';
+                                    } elseif ($sq <= 10) {
+                                        echo '<span class="status-badge inactive" style="background: #fffbe0; color: #d97706; border: 1px solid #fde68a;"><span class="status-dot" style="background: #d97706;"></span> Low Stock (' . $sq . ')</span>';
+                                    } else {
+                                        echo '<span class="status-badge active" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;"><span class="status-dot" style="background: #10b981;"></span> In Stock (' . $sq . ')</span>';
+                                    }
+                                    ?>
+                                </td>
                                 <td style="font-size: 13px; color: #64748b;">
                                     <?php echo !empty($p['manf_date']) ? date("M d, Y", strtotime($p['manf_date'])) : 'N/A'; ?>
                                 </td>
@@ -224,7 +250,7 @@ $end_item = min($offset + $limit, $total_records);
                                     <div class="action-btn-group" style="justify-content: center;">
                                         <a href="edit_products.php?prdct_id=<?php echo (int)$p['prdct_id']; ?>" 
                                            class="action-btn edit" 
-                                           title="Edit Product">
+                                           title="Edit Product / Restock">
                                             <i class="bx bx-edit"></i>
                                         </a>
                                         <button type="button" 
@@ -252,7 +278,7 @@ $end_item = min($offset + $limit, $total_records);
                         <!-- Previous Page -->
                         <?php if ($page > 1): ?>
                             <li>
-                                <a href="view_products.php?cat=<?php echo $cat_filter; ?>&page=<?php echo $page - 1; ?>" class="page-link" title="Previous Page">
+                                <a href="view_products.php?cat=<?php echo $cat_filter; ?>&stock=<?php echo $stock_filter; ?>&page=<?php echo $page - 1; ?>" class="page-link" title="Previous Page">
                                     <i class="bx bx-chevron-left"></i>
                                 </a>
                             </li>
@@ -265,7 +291,7 @@ $end_item = min($offset + $limit, $total_records);
                         <!-- Page Numbers -->
                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                             <li>
-                                <a href="view_products.php?cat=<?php echo $cat_filter; ?>&page=<?php echo $i; ?>" 
+                                <a href="view_products.php?cat=<?php echo $cat_filter; ?>&stock=<?php echo $stock_filter; ?>&page=<?php echo $i; ?>" 
                                    class="page-link <?php echo $i == $page ? 'active' : ''; ?>">
                                     <?php echo $i; ?>
                                 </a>
@@ -275,7 +301,7 @@ $end_item = min($offset + $limit, $total_records);
                         <!-- Next Page -->
                         <?php if ($page < $total_pages): ?>
                             <li>
-                                <a href="view_products.php?cat=<?php echo $cat_filter; ?>&page=<?php echo $page + 1; ?>" class="page-link" title="Next Page">
+                                <a href="view_products.php?cat=<?php echo $cat_filter; ?>&stock=<?php echo $stock_filter; ?>&page=<?php echo $page + 1; ?>" class="page-link" title="Next Page">
                                     <i class="bx bx-chevron-right"></i>
                                 </a>
                             </li>
@@ -293,8 +319,8 @@ $end_item = min($offset + $limit, $total_records);
                 <i class="bx bx-box"></i>
                 <h4>No Products Found</h4>
                 <p>
-                    <?php if ($cat_filter > 0): ?>
-                        No products were found matching the selected category.
+                    <?php if ($cat_filter > 0 || !empty($stock_filter)): ?>
+                        No products match your selected filters.
                     <?php else: ?>
                         You haven't added any products to your catalog yet. Click below to add your first product.
                     <?php endif; ?>
@@ -303,7 +329,7 @@ $end_item = min($offset + $limit, $total_records);
                     <a href="products.php" class="btn-action-primary">
                         <i class="bx bx-plus-circle"></i> Add Product Now
                     </a>
-                    <?php if ($cat_filter > 0): ?>
+                    <?php if ($cat_filter > 0 || !empty($stock_filter)): ?>
                         <a href="view_products.php" class="btn-secondary">
                             View All Products
                         </a>
