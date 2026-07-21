@@ -1,6 +1,5 @@
 <?php 
 require_once 'config.php';
-include_once 'dashboard.php';
 
 if (!isset($_GET['user_id']) || !is_numeric($_GET['user_id'])) {
     header("Location: view_user.php?msg=1");
@@ -11,7 +10,7 @@ $id = (int)$_GET['user_id'];
 $err = [];
 $conn = get_db_connection();
 
-// Process Customer Account Update
+// Process Customer Account Update BEFORE rendering HTML / including dashboard.php
 if (isset($_POST['btnUpdate'])) {
     $name = isset($_POST['name']) ? trim($_POST['name']) : '';
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
@@ -58,6 +57,9 @@ if (!$user) {
     header("Location: view_user.php?msg=1");
     exit();
 }
+
+// NOW include dashboard HTML
+include_once 'dashboard.php';
 ?>
 
 <!-- Include Dedicated Account CSS -->
