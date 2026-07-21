@@ -147,7 +147,31 @@ include('header.php');
             <h1 class="product-detail-title"><?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?></h1>
             <div class="product-detail-company">Manufacturer: <?php echo !empty($prdct_company) ? htmlspecialchars($prdct_company, ENT_QUOTES, 'UTF-8') : 'Medlife Care'; ?></div>
             
-            <div class="product-detail-price">रु. <?php echo number_format($price, 2); ?></div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; margin-top: 6px;">
+                <div class="product-detail-price" style="margin-bottom: 0;">रु. <?php echo number_format($price, 2); ?></div>
+                <span style="font-size: 12.5px; color: #059669; font-weight: 600; background: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.25); padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="bx bx-check-shield"></i> Incl. of 13% VAT & Taxes
+                </span>
+                <button type="button" class="btn-tax-info" onclick="openTaxInfoModal()" title="View Tax & VAT Price Breakdown">
+                    <i class="bx bx-info-circle"></i> Tax Breakdown
+                </button>
+            </div>
+
+            <!-- Shipping & Delivery Info Box -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                    <span style="color: #475569; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                        <i class="bx bx-truck" style="font-size: 18px; color: #059669;"></i> Shipping Fee:
+                    </span>
+                    <strong style="color: #0f172a;">Flat रु. 100.00 <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Nationwide Nepal)</span></strong>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
+                    <span style="color: #475569; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                        <i class="bx bx-time-five" style="font-size: 16px; color: #f59e0b;"></i> Estimated Delivery:
+                    </span>
+                    <span style="color: #059669; font-weight: 600;">24 - 48 Hours Express</span>
+                </div>
+            </div>
             
             <!-- Technical Specs / Product Availability (General status only, no unit count shown) -->
             <div class="product-detail-specs">
@@ -255,7 +279,57 @@ include('header.php');
 
 </main>
 
+<!-- Interactive Tax & VAT Breakdown Modal -->
+<div class="modal-overlay" id="taxInfoModal">
+    <div class="confirm-modal-card" style="max-width: 480px; width: 90%; text-align: left; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <i class="bx bx-receipt" style="color: #059669;"></i> Tax & VAT Price Breakdown
+            </h3>
+            <button type="button" onclick="closeTaxInfoModal()" style="border: none; background: #f1f5f9; width: 30px; height: 30px; border-radius: 50%; color: #64748b; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 8px; color: #475569;">
+                <span>Base Net Product Price:</span>
+                <strong>रु. <?php echo number_format($price / 1.13, 2); ?></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 8px; color: #475569;">
+                <span>Government 13% VAT Tax:</span>
+                <strong style="color: #059669;">रु. <?php echo number_format($price - ($price / 1.13), 2); ?></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 14.5px; font-weight: 700; color: #0f172a; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                <span>MRP Selling Price (Incl. Tax):</span>
+                <span>रु. <?php echo number_format($price, 2); ?></span>
+            </div>
+        </div>
+
+        <div style="font-size: 12px; color: #64748b; line-height: 1.5; background: #eff6ff; border: 1px solid rgba(37, 99, 235, 0.2); padding: 10px 12px; border-radius: 8px; margin-bottom: 16px;">
+            <i class="bx bx-info-circle" style="color: #2563eb;"></i> <strong>IRD Tax Compliant:</strong> All medicine prices on Medlife include mandatory 13% Nepal Inland Revenue Department (IRD) Value Added Tax. Standard shipping charge of रु. 100.00 is applied flat at final checkout.
+        </div>
+
+        <div style="text-align: right;">
+            <button type="button" class="btn btn-primary" onclick="closeTaxInfoModal()" style="padding: 7px 18px; font-size: 13px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">Got it</button>
+        </div>
+    </div>
+</div>
+
 <script>
+function openTaxInfoModal() {
+    var modal = document.getElementById('taxInfoModal');
+    if (modal) modal.classList.add('show');
+}
+function closeTaxInfoModal() {
+    var modal = document.getElementById('taxInfoModal');
+    if (modal) modal.classList.remove('show');
+}
+
+document.getElementById('taxInfoModal').addEventListener('click', function(e) {
+    if (e.target === this) closeTaxInfoModal();
+});
+
 function incrementQty(maxStock) {
     var input = document.getElementById('productQtyInput');
     var val = parseInt(input.value, 10) || 1;
