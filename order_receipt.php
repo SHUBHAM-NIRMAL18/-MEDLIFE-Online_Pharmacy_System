@@ -249,12 +249,28 @@ include('header.php');
 
 <main class="content-container">
     
+    <?php if ($order['status'] != 1 && !isset($_SESSION['admin_login'])): ?>
+        <div class="receipt-wrapper" style="min-height: 50vh; padding: 40px 16px;">
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 50px 30px; text-align: center; max-width: 540px; margin: 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+                <i class="bx bx-receipt" style="font-size: 54px; color: #f59e0b; margin-bottom: 14px; display: block;"></i>
+                <h3 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Receipt Pending Order Completion</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.55;">
+                    Official pharmacy tax receipts are generated only after your order is verified and marked <strong>Completed</strong> by the pharmacist.<br>
+                    Current Order Status: <span style="font-weight: 600; color: #d97706;"><?php echo $order['status'] == 0 ? 'Under Processing' : 'Cancelled'; ?></span>
+                </p>
+                <a href="user_dashboard.php" class="btn btn-primary" style="padding: 10px 24px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
+                    <i class="bx bx-arrow-back"></i> Back to Order History
+                </a>
+            </div>
+        </div>
+    <?php else: ?>
+
     <div class="receipt-wrapper">
         
         <!-- Top Action Toolbar (Hidden in Print) -->
         <div class="receipt-top-actions no-print">
-            <a href="order_placed.php" class="btn btn-outline">
-                <i class="bx bx-arrow-back"></i> Back to Confirmation
+            <a href="user_dashboard.php" class="btn btn-outline">
+                <i class="bx bx-arrow-back"></i> Back to Order History
             </a>
             
             <div style="display: flex; gap: 10px;">
@@ -363,6 +379,7 @@ include('header.php');
         </div>
 
     </div>
+    <?php endif; ?>
 
 </main>
 

@@ -85,11 +85,8 @@ include('header.php');
             </div>
         </div>
         
-        <div class="order-placed-actions" style="flex-wrap: wrap;">
-            <a href="order_receipt.php?id=<?php echo $order_data['order_id']; ?>" class="btn btn-primary" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
-                <i class="bx bx-receipt"></i> View & Download Official Receipt
-            </a>
-            <a href="user_dashboard.php" class="btn btn-outline">Go to Dashboard</a>
+        <div class="order-placed-actions">
+            <a href="user_dashboard.php" class="btn btn-primary">Go to Dashboard</a>
             <a href="index.php" class="btn btn-outline">Continue Shopping</a>
         </div>
     </div>

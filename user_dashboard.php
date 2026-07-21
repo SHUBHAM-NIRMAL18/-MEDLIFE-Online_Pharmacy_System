@@ -101,9 +101,11 @@ include('header.php');
                                         </td>
                                         <td>
                                             <div style="display: flex; gap: 6px; align-items: center;">
-                                                <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
-                                                    <i class="bx bx-receipt"></i> Receipt
-                                                </a>
+                                                <?php if ($items['status'] == 1): ?>
+                                                    <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
+                                                        <i class="bx bx-receipt"></i> Receipt
+                                                    </a>
+                                                <?php endif; ?>
                                                 <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
                                                     <i class="bx bx-map-pin"></i> Track
                                                 </a>
