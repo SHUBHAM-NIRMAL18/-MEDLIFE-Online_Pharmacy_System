@@ -24,14 +24,41 @@ if (!empty($tracking_no)) {
         if ($res && $res->num_rows > 0) {
             $order_data = $res->fetch_assoc();
             
-            // Fetch order items
-            $items_stmt = $conn->prepare("SELECT * FROM tbl_orderitems WHERE order_id = ?");
+            // Fetch order items with product catalog name fallback
+            $items_stmt = $conn->prepare("SELECT i.*, p.prdct_name AS catalog_name, p.prdct_img FROM tbl_orderitems i LEFT JOIN tbl_products p ON (i.prdct_id = p.prdct_id OR i.prdct_name = p.prdct_id) WHERE i.order_id = ?");
             if ($items_stmt) {
                 $items_stmt->bind_param("i", $order_data['order_id']);
                 $items_stmt->execute();
                 $items_res = $items_stmt->get_result();
                 if ($items_res) {
                     while ($item = $items_res->fetch_assoc()) {
+                        $name = '';
+                        if (!empty($item['catalog_name']) && $item['catalog_name'] !== '0' && !is_numeric($item['catalog_name'])) {
+                            $name = $item['catalog_name'];
+                        } elseif (!empty($item['prdct_name']) && $item['prdct_name'] !== '0' && !is_numeric($item['prdct_name'])) {
+                            $name = $item['prdct_name'];
+                        } else {
+                            $pid = (int)$item['prdct_id'];
+                            if ($pid === 0 && is_numeric($item['prdct_name']) && (int)$item['prdct_name'] > 0) {
+                                $pid = (int)$item['prdct_name'];
+                            }
+                            if ($pid > 0) {
+                                $lookup = $conn->query("SELECT prdct_name, prdct_img FROM tbl_products WHERE prdct_id = $pid");
+                                if ($lookup && $lookup->num_rows > 0) {
+                                    $p_data = $lookup->fetch_assoc();
+                                    $name = $p_data['prdct_name'];
+                                    if (empty($item['prdct_img']) && !empty($p_data['prdct_img'])) {
+                                        $item['prdct_img'] = $p_data['prdct_img'];
+                                    }
+                                }
+                            }
+                        }
+
+                        if (empty($name) || $name === '0') {
+                            $name = 'Medicine Item #' . ($item['prdct_id'] > 0 ? $item['prdct_id'] : $order_data['order_id']);
+                        }
+
+                        $item['prdct_display_name'] = $name;
                         $order_items[] = $item;
                     }
                 }
@@ -173,7 +200,14 @@ include('header.php');
                     <tbody>
                         <?php foreach ($order_items as $item): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($item['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <?php if (!empty($item['prdct_img'])): ?>
+                                            <img src="medimg/<?php echo htmlspecialchars($item['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>" style="width: 32px; height: 32px; object-fit: contain; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px;">
+                                        <?php endif; ?>
+                                        <span style="font-weight: 600; color: #0f172a;"><?php echo htmlspecialchars(!empty($item['prdct_display_name']) ? $item['prdct_display_name'] : (!empty($item['catalog_name']) ? $item['catalog_name'] : $item['prdct_name']), ENT_QUOTES, 'UTF-8'); ?></span>
+                                    </div>
+                                </td>
                                 <td style="text-align: center; font-weight: 600;"><?php echo $item['quantity']; ?></td>
                                 <td style="text-align: right; font-weight: 600;">रु. <?php echo number_format($item['price'], 2); ?></td>
                             </tr>

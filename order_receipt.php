@@ -51,11 +51,33 @@ if (!$order) {
 
 $order_id = (int)$order['order_id'];
 
-// Fetch Order Items
+// Fetch Order Items with product catalog name fallback
 $order_items = [];
-$items_res = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $order_id");
+$items_res = $conn->query("SELECT i.*, p.prdct_name AS catalog_name FROM tbl_orderitems i LEFT JOIN tbl_products p ON (i.prdct_id = p.prdct_id OR i.prdct_name = p.prdct_id) WHERE i.order_id = $order_id");
 if ($items_res && $items_res->num_rows > 0) {
     while ($it = $items_res->fetch_assoc()) {
+        $name = '';
+        if (!empty($it['catalog_name']) && $it['catalog_name'] !== '0' && !is_numeric($it['catalog_name'])) {
+            $name = $it['catalog_name'];
+        } elseif (!empty($it['prdct_name']) && $it['prdct_name'] !== '0' && !is_numeric($it['prdct_name'])) {
+            $name = $it['prdct_name'];
+        } else {
+            $pid = (int)$it['prdct_id'];
+            if ($pid === 0 && is_numeric($it['prdct_name']) && (int)$it['prdct_name'] > 0) {
+                $pid = (int)$it['prdct_name'];
+            }
+            if ($pid > 0) {
+                $lookup = $conn->query("SELECT prdct_name FROM tbl_products WHERE prdct_id = $pid");
+                if ($lookup && $lookup->num_rows > 0) {
+                    $p_data = $lookup->fetch_assoc();
+                    $name = $p_data['prdct_name'];
+                }
+            }
+        }
+        if (empty($name) || $name === '0') {
+            $name = 'Medicine Item #' . ($it['prdct_id'] > 0 ? $it['prdct_id'] : $order_id);
+        }
+        $it['prdct_display_name'] = $name;
         $order_items[] = $it;
     }
 }
@@ -338,7 +360,7 @@ include('header.php');
                     ?>
                             <tr>
                                 <td><?php echo $idx + 1; ?></td>
-                                <td><strong><?php echo htmlspecialchars($it['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
+                                <td><strong><?php echo htmlspecialchars(!empty($it['prdct_display_name']) ? $it['prdct_display_name'] : $it['prdct_name'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
                                 <td style="text-align: center;"><?php echo $it['quantity']; ?></td>
                                 <td style="text-align: right;">रु. <?php echo number_format($it['price'], 2); ?></td>
                                 <td style="text-align: right; font-weight: 600;">रु. <?php echo number_format($line, 2); ?></td>
