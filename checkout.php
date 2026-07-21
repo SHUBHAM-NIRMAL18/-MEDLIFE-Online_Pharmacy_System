@@ -41,7 +41,7 @@ $address_val = $address;
 $payment = '';
 $terms = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnOrder'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['fullname']) && !empty($_POST['fullname']) && trim($_POST['fullname'])) {
         $fullname = trim($_POST['fullname']);
     } else {
@@ -291,5 +291,75 @@ include('header.php');
     </div>
     
 </main>
+
+<!-- 360° Rotating Capsule Order Processing Modal Overlay -->
+<div class="order-processing-modal" id="orderProcessingModal">
+    <div class="order-processing-card">
+        <div class="capsule-loader-wrapper">
+            <div class="capsule-pulse-ring"></div>
+            <div class="capsule-pill-spinner">
+                <div class="capsule-half-left"></div>
+                <div class="capsule-half-right"></div>
+            </div>
+        </div>
+
+        <h3 class="order-processing-title">Processing Your Order...</h3>
+        <p class="order-processing-desc" id="processingStatusText">Reserving pharmacy stock & verifying delivery details.</p>
+
+        <div class="order-progress-track">
+            <div class="order-progress-bar" id="orderProgressBar"></div>
+        </div>
+
+        <div class="order-step-status">
+            <i class="bx bx-sync bx-spin"></i> Please do not close or refresh this page...
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var checkoutForm = document.querySelector('form[action*="checkout.php"]') || document.querySelector('form');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            // Check HTML5 Form Validation
+            if (!checkoutForm.checkValidity()) return;
+
+            e.preventDefault();
+
+            var modal = document.getElementById('orderProcessingModal');
+            var progressBar = document.getElementById('orderProgressBar');
+            var statusText = document.getElementById('processingStatusText');
+
+            if (modal) modal.classList.add('active');
+
+            var progress = 0;
+            var interval = setInterval(function() {
+                progress += 4;
+                if (progressBar) progressBar.style.width = progress + '%';
+
+                if (progress === 40 && statusText) {
+                    statusText.textContent = "Verifying prescription & payment mode...";
+                } else if (progress === 80 && statusText) {
+                    statusText.textContent = "Finalizing pharmacy tracking order ID...";
+                }
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(function() {
+                        if (!checkoutForm.querySelector('input[name="btnOrder"]')) {
+                            var hiddenSubmit = document.createElement('input');
+                            hiddenSubmit.type = 'hidden';
+                            hiddenSubmit.name = 'btnOrder';
+                            hiddenSubmit.value = '1';
+                            checkoutForm.appendChild(hiddenSubmit);
+                        }
+                        checkoutForm.submit();
+                    }, 150);
+                }
+            }, 75); // 75ms * 25 steps = ~1.9 seconds smooth animation
+        });
+    }
+});
+</script>
 
 <?php include('footer.php'); ?>

@@ -257,3 +257,161 @@
   flex: 1;
 }
 
+/* ==========================================================================
+   360° Rotating Capsule Order Processing Modal (checkout.php)
+   ========================================================================== */
+.order-processing-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.order-processing-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.order-processing-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px 36px;
+  width: 90%;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.order-processing-modal.active .order-processing-card {
+  transform: translateY(0) scale(1);
+}
+
+/* 360° Rotating Capsule Spinner Container */
+.capsule-loader-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+/* Pulse Rings */
+.capsule-pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0) 70%);
+  animation: pulseRing 2s infinite ease-out;
+}
+
+@keyframes pulseRing {
+  0% { transform: scale(0.7); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* 3D Medical Capsule Pill */
+.capsule-pill-spinner {
+  width: 72px;
+  height: 32px;
+  border-radius: 20px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  animation: capsuleSpin 1.8s infinite linear;
+  position: relative;
+  border: 2px solid #ffffff;
+}
+
+.capsule-half-left {
+  flex: 1;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  position: relative;
+}
+
+.capsule-half-right {
+  flex: 1;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  position: relative;
+}
+
+.capsule-pill-spinner::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+}
+
+@keyframes capsuleSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.order-processing-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.order-processing-desc {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Animated Progress Bar */
+.order-progress-track {
+  width: 100%;
+  height: 7px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.order-progress-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #059669 0%, #10b981 50%, #f59e0b 100%);
+  border-radius: 10px;
+  transition: width 0.1s linear;
+}
+
+.order-step-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
