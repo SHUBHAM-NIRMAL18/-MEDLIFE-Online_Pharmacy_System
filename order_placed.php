@@ -5,17 +5,31 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $conn = get_db_connection();
-
-// Fetch the most recent order from the database
-$sql = "SELECT * FROM tbl_order ORDER BY order_id DESC LIMIT 1";
-$result = $conn->query($sql);
 $order_data = [];
 
-if ($result && $result->num_rows > 0) {
-    $order_data = $result->fetch_assoc();
-} else {
-    header("Location: index.php");
-    exit();
+$uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+if ($uid > 0) {
+    $stmt = $conn->prepare("SELECT * FROM tbl_order WHERE user_id = ? ORDER BY order_id DESC LIMIT 1");
+    if ($stmt) {
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            $order_data = $res->fetch_assoc();
+        }
+        $stmt->close();
+    }
+}
+
+if (empty($order_data)) {
+    $sql = "SELECT * FROM tbl_order ORDER BY order_id DESC LIMIT 1";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        $order_data = $result->fetch_assoc();
+    } else {
+        header("Location: index.php");
+        exit();
+    }
 }
 
 $page_title = "Order Placed Successfully";
@@ -71,8 +85,11 @@ include('header.php');
             </div>
         </div>
         
-        <div class="order-placed-actions">
-            <a href="user_dashboard.php" class="btn btn-primary">Go to Dashboard</a>
+        <div class="order-placed-actions" style="flex-wrap: wrap;">
+            <a href="order_receipt.php?id=<?php echo $order_data['order_id']; ?>" class="btn btn-primary" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
+                <i class="bx bx-receipt"></i> View & Download Official Receipt
+            </a>
+            <a href="user_dashboard.php" class="btn btn-outline">Go to Dashboard</a>
             <a href="index.php" class="btn btn-outline">Continue Shopping</a>
         </div>
     </div>

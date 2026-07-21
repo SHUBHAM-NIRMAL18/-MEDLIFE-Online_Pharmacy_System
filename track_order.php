@@ -90,7 +90,10 @@ include('header.php');
                     <div class="order-no">Tracking: <span><?php echo htmlspecialchars($order_data['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></span></div>
                     <div class="order-date">Placed on <?php echo date("F d, Y, g:i a", strtotime($order_data['created_at'])); ?></div>
                 </div>
-                <div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <a href="order_receipt.php?id=<?php echo $order_data['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 6px 14px; font-size: 13px; border-radius: 8px; color: #059669; border-color: rgba(5, 150, 105, 0.4);">
+                        <i class="bx bx-receipt"></i> Print Tax Receipt
+                    </a>
                     <?php if ($status == 0): ?>
                         <span class="status-badge process" style="font-size: 13px; padding: 6px 14px;"><i class="bx bx-loader-circle bx-spin"></i> Under Processing</span>
                     <?php elseif ($status == 1): ?>
