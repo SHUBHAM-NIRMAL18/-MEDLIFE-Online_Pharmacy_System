@@ -99,39 +99,146 @@ include('header.php');
                                             }
                                             ?>
                                         </td>
-                                        <td>
-                                            <div style="display: flex; gap: 6px; align-items: center;">
-                                                <?php if ($items['status'] == 1): ?>
-                                                    <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
-                                                        <i class="bx bx-receipt"></i> Receipt
-                                                    </a>
-                                                <?php endif; ?>
-                                                <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                                    <i class="bx bx-map-pin"></i> Track
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                <?php 
-                    else: 
-                ?>
-                        <div style="text-align: center; padding: 40px 0; color: var(--text-light);">
-                            <i class="bx bx-receipt" style="font-size: 48px; margin-bottom: 12px; display: block;"></i>
-                            <p>You haven't placed any pharmacy orders yet.</p>
-                            <a href="index.php" class="btn btn-primary" style="margin-top: 16px;">Browse Medicines</a>
-                        </div>
-                <?php 
-                    endif;
-                    $order_stmt->close();
-                }
-                ?>
-            </div>
-        </section>
+                                         <td>
+                                             <div style="display: flex; gap: 6px; align-items: center;">
+                                                 <button type="button" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #2563eb; border-color: rgba(37, 99, 235, 0.3); background: #eff6ff;" onclick="openOrderProductsModal(<?php echo $items['order_id']; ?>, '<?php echo htmlspecialchars(addslashes($items['tracking_order']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo date("M d, Y, g:i a", strtotime($items['created_at'])); ?>')">
+                                                     <i class="bx bx-show"></i> Items
+                                                 </button>
+                                                 <?php if ($items['status'] == 1): ?>
+                                                     <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
+                                                         <i class="bx bx-receipt"></i> Receipt
+                                                     </a>
+                                                 <?php endif; ?>
+                                                 <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                                     <i class="bx bx-map-pin"></i> Track
+                                                 </a>
+                                             </div>
+                                         </td>
+                                     </tr>
+                                 <?php endwhile; ?>
+                             </tbody>
+                         </table>
+                 <?php 
+                     else: 
+                 ?>
+                         <div style="text-align: center; padding: 40px 0; color: var(--text-light);">
+                             <i class="bx bx-receipt" style="font-size: 48px; margin-bottom: 12px; display: block;"></i>
+                             <p>You haven't placed any pharmacy orders yet.</p>
+                             <a href="index.php" class="btn btn-primary" style="margin-top: 16px;">Browse Medicines</a>
+                         </div>
+                 <?php 
+                     endif;
+                     $order_stmt->close();
+                 }
+                 ?>
+             </div>
+         </section>
 
     </div>
 </main>
+
+<!-- Customer Order Products Detail Modal Overlay -->
+<div class="modal-overlay" id="orderProductsModal">
+    <div class="confirm-modal-card" style="max-width: 600px; width: 92%; text-align: left; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+            <div>
+                <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0;" id="modalOrderRef">
+                    Order Items Details
+                </h3>
+                <div style="font-size: 12px; color: #64748b; margin-top: 2px;" id="modalOrderDate">
+                    Placed Date
+                </div>
+            </div>
+            <button type="button" onclick="closeOrderProductsModal()" style="border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; color: #64748b; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+
+        <div id="modalOrderItemsBody">
+            <div style="text-align: center; padding: 30px 0; color: #64748b;">
+                <i class="bx bx-loader-circle bx-spin" style="font-size: 32px; color: #059669;"></i>
+                <p style="margin-top: 8px; font-size: 13px;">Loading order items...</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+            <button type="button" class="btn btn-outline" onclick="closeOrderProductsModal()" style="padding: 7px 18px; font-size: 13px;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openOrderProductsModal(orderId, trackingRef, dateStr) {
+    var modal = document.getElementById('orderProductsModal');
+    var refEl = document.getElementById('modalOrderRef');
+    var dateEl = document.getElementById('modalOrderDate');
+    var bodyEl = document.getElementById('modalOrderItemsBody');
+
+    if (refEl) refEl.innerHTML = '<i class="bx bx-package" style="color: #059669;"></i> Tracking: <span style="font-family: monospace; color: #059669;">' + trackingRef + '</span>';
+    if (dateEl) dateEl.textContent = 'Placed on ' + dateStr;
+
+    if (bodyEl) {
+        bodyEl.innerHTML = '<div style="text-align: center; padding: 30px 0; color: #64748b;"><i class="bx bx-loader-circle bx-spin" style="font-size: 32px; color: #059669;"></i><p style="margin-top: 8px; font-size: 13px;">Loading items...</p></div>';
+    }
+
+    if (modal) modal.classList.add('show');
+
+    fetch('get_order_details.php?order_id=' + orderId)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                var html = '<table style="width: 100%; border-collapse: collapse; margin-top: 8px;">';
+                html += '<thead><tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">';
+                html += '<th style="padding: 10px; font-size: 12px; color: #475569; text-align: left;">Product</th>';
+                html += '<th style="padding: 10px; font-size: 12px; color: #475569; text-align: center; width: 60px;">Qty</th>';
+                html += '<th style="padding: 10px; font-size: 12px; color: #475569; text-align: right; width: 100px;">Price</th>';
+                html += '<th style="padding: 10px; font-size: 12px; color: #475569; text-align: right; width: 110px;">Subtotal</th>';
+                html += '</tr></thead><tbody>';
+
+                var subtotal = 0;
+                data.items.forEach(function(item) {
+                    var lineTotal = parseFloat(item.price) * parseInt(item.quantity);
+                    subtotal += lineTotal;
+                    var imgSrc = item.prdct_img ? 'medimg/' + item.prdct_img : 'medimg/default.png';
+
+                    var itemName = item.prdct_display_name || item.catalog_name || item.prdct_name || 'Pharmacy Item';
+                    html += '<tr style="border-bottom: 1px solid #f1f5f9;">';
+                    html += '<td style="padding: 10px; display: flex; align-items: center; gap: 10px;">';
+                    html += '<img src="' + imgSrc + '" style="width: 38px; height: 38px; object-fit: contain; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 2px;">';
+                    html += '<span style="font-weight: 600; font-size: 13px; color: #0f172a;">' + itemName + '</span>';
+                    html += '</td>';
+                    html += '<td style="padding: 10px; text-align: center; font-weight: 600; font-size: 13px;">' + item.quantity + '</td>';
+                    html += '<td style="padding: 10px; text-align: right; font-size: 13px; color: #475569;">रु. ' + parseFloat(item.price).toFixed(2) + '</td>';
+                    html += '<td style="padding: 10px; text-align: right; font-weight: 700; font-size: 13px; color: #0f172a;">रु. ' + lineTotal.toFixed(2) + '</td>';
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+
+                html += '<div style="margin-top: 16px; background: #f8fafc; padding: 14px 16px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; border: 1px solid #f1f5f9;">';
+                html += '<div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b;"><span>Items Subtotal</span><span>रु. ' + subtotal.toFixed(2) + '</span></div>';
+                html += '<div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b;"><span>Delivery Charge</span><span>रु. 100.00</span></div>';
+                html += '<div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; color: #059669; border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 4px;"><span>Grand Total</span><span>रु. ' + parseFloat(data.order.total).toFixed(2) + '</span></div>';
+                html += '</div>';
+
+                if (bodyEl) bodyEl.innerHTML = html;
+            } else {
+                if (bodyEl) bodyEl.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 20px;">Could not load items.</p>';
+            }
+        })
+        .catch(err => {
+            if (bodyEl) bodyEl.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 20px;">Error loading order items.</p>';
+        });
+}
+
+function closeOrderProductsModal() {
+    var modal = document.getElementById('orderProductsModal');
+    if (modal) modal.classList.remove('show');
+}
+
+document.getElementById('orderProductsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeOrderProductsModal();
+});
+</script>
 
 <?php include('footer.php'); ?>
