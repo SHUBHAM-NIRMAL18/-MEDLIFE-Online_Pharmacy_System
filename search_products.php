@@ -407,7 +407,7 @@ include('header.php');
                                     <?php if ($p_stock > 0): ?>
                                         <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
                                     <?php else: ?>
-                                        <button type="button" class="btn" disabled style="opacity: 0.6; cursor: not-allowed; background: #e2e8f0; color: #94a3b8; border: none;">Out of Stock</button>
+                                        <button type="button" class="btn btn-disabled" disabled><i class="bx bx-x-circle"></i> Out of Stock</button>
                                     <?php endif; ?>
                                 </div>
                             </div>

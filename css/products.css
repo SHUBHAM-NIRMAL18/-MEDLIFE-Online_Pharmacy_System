@@ -264,6 +264,27 @@
   border-color: #059669;
 }
 
+.product-actions .btn-disabled,
+.product-actions .btn-out-of-stock,
+.btn-disabled {
+  flex: 1;
+  padding: 9.5px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border: 1px solid #cbd5e1 !important;
+  cursor: not-allowed !important;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: none !important;
+}
+
 .product-actions .btn-outline:hover {
   border-color: var(--primary);
   color: var(--primary);

@@ -71,11 +71,17 @@ include('header.php');
     <h2 class="section-title">Medicines</h2>
     <div class="product-grid">
       <?php if ($medicines && $medicines->num_rows > 0): ?>
-        <?php while ($row = $medicines->fetch_assoc()): ?>
+        <?php while ($row = $medicines->fetch_assoc()): 
+          $stock_qty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 50;
+        ?>
           <div class="product-card">
             <div class="product-img-wrapper">
               <div class="product-badge-bar">
-                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <?php if ($stock_qty > 0): ?>
+                  <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <?php else: ?>
+                  <span class="product-badge" style="color: #dc2626; border-color: rgba(220, 38, 38, 0.3); background: #fef2f2;"><i class="bx bx-x-circle"></i> Out of Stock</span>
+                <?php endif; ?>
                 <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
                   <i class="bx bx-heart"></i>
                 </button>
@@ -101,7 +107,11 @@ include('header.php');
               </div>
               <div class="product-actions">
                 <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline"><i class="bx bx-info-circle"></i> Details</a>
-                <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
+                <?php if ($stock_qty > 0): ?>
+                  <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
+                <?php else: ?>
+                  <button type="button" class="btn btn-disabled" disabled><i class="bx bx-x-circle"></i> Out of Stock</button>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -119,11 +129,17 @@ include('header.php');
     <h2 class="section-title">Supplements</h2>
     <div class="product-grid">
       <?php if ($supplements && $supplements->num_rows > 0): ?>
-        <?php while ($row = $supplements->fetch_assoc()): ?>
+        <?php while ($row = $supplements->fetch_assoc()): 
+          $stock_qty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 50;
+        ?>
           <div class="product-card">
             <div class="product-img-wrapper">
               <div class="product-badge-bar">
-                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <?php if ($stock_qty > 0): ?>
+                  <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <?php else: ?>
+                  <span class="product-badge" style="color: #dc2626; border-color: rgba(220, 38, 38, 0.3); background: #fef2f2;"><i class="bx bx-x-circle"></i> Out of Stock</span>
+                <?php endif; ?>
                 <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
                   <i class="bx bx-heart"></i>
                 </button>
@@ -149,7 +165,11 @@ include('header.php');
               </div>
               <div class="product-actions">
                 <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline"><i class="bx bx-info-circle"></i> Details</a>
-                <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
+                <?php if ($stock_qty > 0): ?>
+                  <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
+                <?php else: ?>
+                  <button type="button" class="btn btn-disabled" disabled><i class="bx bx-x-circle"></i> Out of Stock</button>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -167,11 +187,17 @@ include('header.php');
     <h2 class="section-title">Devices</h2>
     <div class="product-grid">
       <?php if ($devices && $devices->num_rows > 0): ?>
-        <?php while ($row = $devices->fetch_assoc()): ?>
+        <?php while ($row = $devices->fetch_assoc()): 
+          $stock_qty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 50;
+        ?>
           <div class="product-card">
             <div class="product-img-wrapper">
               <div class="product-badge-bar">
-                <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <?php if ($stock_qty > 0): ?>
+                  <span class="product-badge"><i class="bx bx-check-shield"></i> In Stock</span>
+                <?php else: ?>
+                  <span class="product-badge" style="color: #dc2626; border-color: rgba(220, 38, 38, 0.3); background: #fef2f2;"><i class="bx bx-x-circle"></i> Out of Stock</span>
+                <?php endif; ?>
                 <button class="wishlist-btn" onclick="toggleWishlist(this, event)" title="Save to Wishlist">
                   <i class="bx bx-heart"></i>
                 </button>
@@ -197,7 +223,11 @@ include('header.php');
               </div>
               <div class="product-actions">
                 <a href="single.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-outline"><i class="bx bx-info-circle"></i> Details</a>
-                <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
+                <?php if ($stock_qty > 0): ?>
+                  <a href="addToCart.php?id=<?php echo $row['prdct_id']; ?>" class="btn btn-primary"><i class="bx bx-cart-add"></i> Add</a>
+                <?php else: ?>
+                  <button type="button" class="btn btn-disabled" disabled><i class="bx bx-x-circle"></i> Out of Stock</button>
+                <?php endif; ?>
               </div>
             </div>
           </div>
