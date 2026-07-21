@@ -1,6 +1,5 @@
 <?php 
 require_once 'config.php';
-include_once 'dashboard.php';
 
 if (!isset($_GET['cat_id']) || !is_numeric($_GET['cat_id'])) {
     header("Location: viewcat.php?msg=1");
@@ -12,10 +11,32 @@ $message = '';
 $err = [];
 $conn = get_db_connection();
 
-// Process category update
+// Helper to fetch category options with indentation (excluding self to avoid cyclic loops)
+function get_category_options_exclude($conn, $exclude_id, $parent = 0, $indent = "", $selected = 0) {
+    $html = "";
+    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? AND cat_id != ? ORDER BY cat_name ASC");
+    if ($stmt) {
+        $stmt->bind_param("ii", $parent, $exclude_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $is_sel = ($row['cat_id'] == $selected) ? "selected" : "";
+                $prefix = !empty($indent) ? $indent . "└─ " : "";
+                $html .= '<option value="' . $row['cat_id'] . '" ' . $is_sel . '>' . $prefix . htmlspecialchars($row['cat_name'], ENT_QUOTES, 'UTF-8') . '</option>';
+                $html .= get_category_options_exclude($conn, $exclude_id, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected);
+            }
+        }
+        $stmt->close();
+    }
+    return $html;
+}
+
+// Process category update BEFORE rendering HTML
 if (isset($_POST['btnUpdate'])) {
     $cat_name = isset($_POST['cat_name']) ? trim($_POST['cat_name']) : '';
     $cat_status = isset($_POST['cat_status']) ? trim($_POST['cat_status']) : '';
+    $parent_id = isset($_POST['parent_id']) ? (int)$_POST['parent_id'] : 0;
 
     if (empty($cat_name)) {
         $err['cat_name'] = 'Please enter the category name';
@@ -23,11 +44,14 @@ if (isset($_POST['btnUpdate'])) {
     if (empty($cat_status)) {
         $err['cat_status'] = 'Please select the status';
     }
+    if ($parent_id === $id) {
+        $err['parent_id'] = 'A category cannot be its own parent category.';
+    }
 
     if (count($err) === 0) {
-        $stmt = $conn->prepare("UPDATE tbl_categories SET cat_name = ?, cat_status = ? WHERE cat_id = ?");
+        $stmt = $conn->prepare("UPDATE tbl_categories SET cat_name = ?, cat_status = ?, parent_id = ? WHERE cat_id = ?");
         if ($stmt) {
-            $stmt->bind_param("ssi", $cat_name, $cat_status, $id);
+            $stmt->bind_param("ssii", $cat_name, $cat_status, $parent_id, $id);
             $stmt->execute();
             $stmt->close();
             header("Location: viewcat.php?updated=1");
@@ -55,6 +79,9 @@ if (!$category) {
     header("Location: viewcat.php?msg=1");
     exit();
 }
+
+// Now include dashboard header HTML
+include_once 'dashboard.php';
 ?>
 
 <!-- Include Dedicated Category CSS -->
@@ -79,7 +106,7 @@ if (!$category) {
     <div class="category-page-header">
         <div>
             <h1><i class="bx bx-edit" style="color: var(--admin-accent, #059669);"></i> Edit Category</h1>
-            <p>Modify category name and store visibility status for Category #<?php echo $id; ?>.</p>
+            <p>Modify category name, parent hierarchy level, and visibility status for Category #<?php echo $id; ?>.</p>
         </div>
         <a href="viewcat.php" class="btn-secondary">
             <i class="bx bx-arrow-back"></i> Back to Categories
@@ -104,6 +131,25 @@ if (!$category) {
 
             <form action="edit_categories.php?cat_id=<?php echo $id; ?>" method="POST" autocomplete="off">
                 
+                <!-- Parent Category Selector -->
+                <div class="form-group">
+                    <label for="parent_id" class="form-label">
+                        Parent Category Level
+                    </label>
+                    <div class="input-icon-wrapper">
+                        <i class="bx bx-git-repo-forked"></i>
+                        <select id="parent_id" name="parent_id" class="form-select">
+                            <option value="0" <?php echo $category['parent_id'] == 0 ? 'selected' : ''; ?>>Root Category (Top-Level Category)</option>
+                            <?php echo get_category_options_exclude($conn, $id, 0, "", $category['parent_id']); ?>
+                        </select>
+                    </div>
+                    <?php if (isset($err['parent_id'])): ?>
+                        <div class="field-error">
+                            <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['parent_id'], ENT_QUOTES, 'UTF-8'); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Category Name -->
                 <div class="form-group">
                     <label for="cat_name" class="form-label">
@@ -177,7 +223,7 @@ if (!$category) {
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>Impact:</strong> Updating the status will immediately affect all products assigned to this category.
+                        <strong>Parent ID:</strong> <?php echo $category['parent_id'] == 0 ? 'Root Level (Top Level)' : '#' . $category['parent_id']; ?>
                     </div>
                 </li>
             </ul>
