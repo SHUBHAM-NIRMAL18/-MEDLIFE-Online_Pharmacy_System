@@ -40,6 +40,10 @@ $active_page = basename($_SERVER['PHP_SELF']);
 <?php 
 $is_admin = isset($_SESSION['admin_login']) && isset($_SESSION['admin_id']);
 $is_user = isset($_SESSION['user_login']) && isset($_SESSION['user_id']);
+
+$curr_pharm_id = get_current_pharmacy_id();
+$curr_pharm = get_pharmacy_details($curr_pharm_id);
+$all_pharmacies = get_active_pharmacies();
 ?>
 
 <div class="site-wrapper">
@@ -47,7 +51,7 @@ $is_user = isset($_SESSION['user_login']) && isset($_SESSION['user_id']);
   <!-- Top Bar -->
   <div class="top-bar">
     <div class="content-container top-bar-container">
-      <div class="welcome-msg">
+      <div class="welcome-msg" style="display: flex; align-items: center; gap: 15px;">
         <span>
           <?php 
           if ($is_admin) { 
@@ -59,8 +63,21 @@ $is_user = isset($_SESSION['user_login']) && isset($_SESSION['user_id']);
           } 
           ?>
         </span>
+
+        <!-- Pharmacy Selector Widget -->
+        <div style="position: relative; display: inline-block;">
+          <select onchange="window.location.href='?pharmacy=' + this.value" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #059669; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; cursor: pointer; outline: none;">
+            <?php foreach ($all_pharmacies as $ph): ?>
+              <option value="<?php echo $ph['pharmacy_id']; ?>" <?php echo $ph['pharmacy_id'] == $curr_pharm_id ? 'selected' : ''; ?>>
+                🏬 Store: <?php echo htmlspecialchars($ph['name']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
       </div>
       <div class="top-links">
+        <a href="saas_register.php" class="top-link" style="color: #10b981; font-weight: 600;"><i class="bx bx-store-alt"></i> Sell With Us / Open Pharmacy</a>
+        <span class="divider">|</span>
         <a href="track_order.php" class="top-link"><i class="bx bx-map-pin"></i> Track Order</a>
         <span class="divider">|</span>
         <?php if ($is_admin): ?>
@@ -89,11 +106,11 @@ $is_user = isset($_SESSION['user_login']) && isset($_SESSION['user_id']);
 // Fetch active top-level root categories and their subcategories for header menu
 $conn_header = get_db_connection();
 $root_categories = [];
-$root_res = $conn_header->query("SELECT * FROM tbl_categories WHERE parent_id = 0 AND cat_status = 1 ORDER BY cat_name ASC");
+$root_res = $conn_header->query("SELECT * FROM tbl_categories WHERE parent_id = 0 AND cat_status = 1 AND pharmacy_id = $curr_pharm_id ORDER BY cat_name ASC");
 if ($root_res && $root_res->num_rows > 0) {
     while ($rc = $root_res->fetch_assoc()) {
         $rc_id = (int)$rc['cat_id'];
-        $subs_res = $conn_header->query("SELECT * FROM tbl_categories WHERE parent_id = $rc_id AND cat_status = 1 ORDER BY cat_name ASC");
+        $subs_res = $conn_header->query("SELECT * FROM tbl_categories WHERE parent_id = $rc_id AND cat_status = 1 AND pharmacy_id = $curr_pharm_id ORDER BY cat_name ASC");
         $subs = [];
         if ($subs_res && $subs_res->num_rows > 0) {
             while ($sc = $subs_res->fetch_assoc()) {
