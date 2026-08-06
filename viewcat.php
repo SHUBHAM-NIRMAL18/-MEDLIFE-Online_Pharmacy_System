@@ -3,20 +3,21 @@ require_once 'config.php';
 include_once 'dashboard.php';
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Helper to fetch category hierarchy recursively
-function fetch_category_tree($conn, $parent_id = 0, $depth = 0) {
+function fetch_category_tree($conn, $parent_id = 0, $depth = 0, $pharmacy_id = 1) {
     $result = [];
-    $stmt = $conn->prepare("SELECT c.*, p.cat_name AS parent_name FROM tbl_categories c LEFT JOIN tbl_categories p ON c.parent_id = p.cat_id WHERE c.parent_id = ? ORDER BY c.cat_name ASC");
+    $stmt = $conn->prepare("SELECT c.*, p.cat_name AS parent_name FROM tbl_categories c LEFT JOIN tbl_categories p ON c.parent_id = p.cat_id WHERE c.parent_id = ? AND c.pharmacy_id = ? ORDER BY c.cat_name ASC");
     if ($stmt) {
-        $stmt->bind_param("i", $parent_id);
+        $stmt->bind_param("ii", $parent_id, $pharmacy_id);
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res) {
             while ($row = $res->fetch_assoc()) {
                 $row['depth'] = $depth;
                 $result[] = $row;
-                $children = fetch_category_tree($conn, $row['cat_id'], $depth + 1);
+                $children = fetch_category_tree($conn, $row['cat_id'], $depth + 1, $pharmacy_id);
                 $result = array_merge($result, $children);
             }
         }
@@ -25,11 +26,11 @@ function fetch_category_tree($conn, $parent_id = 0, $depth = 0) {
     return $result;
 }
 
-$categories = fetch_category_tree($conn, 0, 0);
+$categories = fetch_category_tree($conn, 0, 0, $pharmacy_id);
 
 // If orphan subcategories exist (parent deleted), fetch them at root
 $existing_ids = array_column($categories, 'cat_id');
-$orphans_res = $conn->query("SELECT c.*, p.cat_name AS parent_name FROM tbl_categories c LEFT JOIN tbl_categories p ON c.parent_id = p.cat_id ORDER BY c.cat_id DESC");
+$orphans_res = $conn->query("SELECT c.*, p.cat_name AS parent_name FROM tbl_categories c LEFT JOIN tbl_categories p ON c.parent_id = p.cat_id WHERE c.pharmacy_id = $pharmacy_id ORDER BY c.cat_id DESC");
 if ($orphans_res && $orphans_res->num_rows > 0) {
     while ($r = $orphans_res->fetch_assoc()) {
         if (!in_array($r['cat_id'], $existing_ids)) {
