@@ -47,6 +47,8 @@ define('DB_USER', env('DB_USER', 'root'));
 define('DB_PASS', env('DB_PASS', ''));
 define('DB_NAME', env('DB_NAME', 'medlife'));
 
+require_once __DIR__ . '/config/saas_setup.php';
+
 // Centralized database connection function
 if (!function_exists('get_db_connection')) {
     function get_db_connection() {
@@ -58,6 +60,7 @@ if (!function_exists('get_db_connection')) {
             }
             ensure_product_stock_column($conn);
             ensure_category_parent_column($conn);
+            run_saas_migrations($conn);
         }
         return $conn;
     }
@@ -90,4 +93,72 @@ if (!function_exists('ensure_category_parent_column')) {
         }
     }
 }
+
+// Helper to get active customer/visitor pharmacy context
+if (!function_exists('get_current_pharmacy_id')) {
+    function get_current_pharmacy_id() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        // Allow URL override e.g. ?pharmacy=2
+        if (isset($_GET['pharmacy']) && is_numeric($_GET['pharmacy'])) {
+            $_SESSION['current_pharmacy_id'] = (int)$_GET['pharmacy'];
+        }
+        return isset($_SESSION['current_pharmacy_id']) ? (int)$_SESSION['current_pharmacy_id'] : 1;
+    }
+}
+
+// Helper to set customer/visitor pharmacy context
+if (!function_exists('set_current_pharmacy_id')) {
+    function set_current_pharmacy_id($id) {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['current_pharmacy_id'] = (int)$id;
+    }
+}
+
+// Helper to fetch details of a specific pharmacy
+if (!function_exists('get_pharmacy_details')) {
+    function get_pharmacy_details($pharmacy_id) {
+        $conn = get_db_connection();
+        $stmt = $conn->prepare("SELECT * FROM tbl_pharmacies WHERE pharmacy_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $pharmacy_id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($res && $res->num_rows > 0) {
+                return $res->fetch_assoc();
+            }
+        }
+        return [
+            'pharmacy_id' => 1,
+            'name' => 'MedLife Central Pharmacy',
+            'slug' => 'medlife-central',
+            'email' => 'central@medlife.com',
+            'phone' => '9800000000',
+            'address' => 'Central Health Plaza, Kathmandu',
+            'plan' => 'Enterprise',
+            'delivery_fee' => 100.00,
+            'status' => 1,
+            'logo' => 'img/pharmacy-default.png'
+        ];
+    }
+}
+
+// Helper to get all active pharmacies for customer selector
+if (!function_exists('get_active_pharmacies')) {
+    function get_active_pharmacies() {
+        $conn = get_db_connection();
+        $list = [];
+        $res = $conn->query("SELECT * FROM tbl_pharmacies WHERE status = 1 ORDER BY name ASC");
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $list[] = $row;
+            }
+        }
+        return $list;
+    }
+}
+
 
