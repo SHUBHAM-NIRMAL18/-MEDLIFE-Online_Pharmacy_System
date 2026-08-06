@@ -3,6 +3,7 @@ require_once 'config.php';
 include_once 'dashboard.php';
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Category, Stock Filter & Pagination Settings
 $cat_filter = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
@@ -13,7 +14,7 @@ $offset = ($page - 1) * $limit;
 
 // Fetch all categories for filter dropdown
 $categories = [];
-$cat_res = $conn->query("SELECT * FROM tbl_categories ORDER BY cat_name ASC");
+$cat_res = $conn->query("SELECT * FROM tbl_categories WHERE pharmacy_id = $pharmacy_id ORDER BY cat_name ASC");
 if ($cat_res && $cat_res->num_rows > 0) {
     while ($r = $cat_res->fetch_assoc()) {
         $categories[] = $r;
@@ -21,7 +22,7 @@ if ($cat_res && $cat_res->num_rows > 0) {
 }
 
 // Build dynamic WHERE clause
-$where = [];
+$where = ["p.pharmacy_id = $pharmacy_id"];
 $count_params = [];
 $count_types = "";
 
@@ -37,7 +38,7 @@ if ($stock_filter === 'low') {
     $where[] = "p.stock_quantity <= 0";
 }
 
-$where_sql = count($where) > 0 ? " WHERE " . implode(" AND ", $where) : "";
+$where_sql = " WHERE " . implode(" AND ", $where);
 
 // Count total matching records
 $total_records = 0;
