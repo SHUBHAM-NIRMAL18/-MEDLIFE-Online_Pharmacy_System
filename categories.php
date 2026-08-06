@@ -9,13 +9,14 @@ $status = '';
 $parent_id = 0;
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Helper to fetch category options with indentation
-function get_category_options($conn, $parent = 0, $indent = "", $selected = 0) {
+function get_category_options($conn, $parent = 0, $indent = "", $selected = 0, $pharmacy_id = 1) {
     $html = "";
-    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? ORDER BY cat_name ASC");
+    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? AND pharmacy_id = ? ORDER BY cat_name ASC");
     if ($stmt) {
-        $stmt->bind_param("i", $parent);
+        $stmt->bind_param("ii", $parent, $pharmacy_id);
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res) {
@@ -23,7 +24,7 @@ function get_category_options($conn, $parent = 0, $indent = "", $selected = 0) {
                 $is_sel = ($row['cat_id'] == $selected) ? "selected" : "";
                 $prefix = !empty($indent) ? $indent . "└─ " : "";
                 $html .= '<option value="' . $row['cat_id'] . '" ' . $is_sel . '>' . $prefix . htmlspecialchars($row['cat_name'], ENT_QUOTES, 'UTF-8') . '</option>';
-                $html .= get_category_options($conn, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected);
+                $html .= get_category_options($conn, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected, $pharmacy_id);
             }
         }
         $stmt->close();
@@ -48,9 +49,9 @@ if (isset($_POST['btnAdd'])) {
     $parent_id = isset($_POST['parent_id']) ? (int)$_POST['parent_id'] : 0;
 
     if (count($err) === 0) {
-        $stmt = $conn->prepare("INSERT INTO tbl_categories (cat_name, cat_status, parent_id) VALUES (?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO tbl_categories (cat_name, cat_status, parent_id, pharmacy_id) VALUES (?, ?, ?, ?)");
         if ($stmt) {
-            $stmt->bind_param("ssi", $categories, $status, $parent_id);
+            $stmt->bind_param("ssii", $categories, $status, $parent_id, $pharmacy_id);
             $stmt->execute();
             if ($stmt->affected_rows === 1 && $stmt->insert_id > 0) {
                 $message = "Category created successfully!";
