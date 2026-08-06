@@ -7,16 +7,34 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Get DB connection from config
 $conn = get_db_connection();
+$current_pharmacy_id = get_current_pharmacy_id();
+$current_pharmacy = get_pharmacy_details($current_pharmacy_id);
 
-// Fetch products for home sections
-$medicines = $conn->query('SELECT * FROM tbl_products WHERE cat_id=1 LIMIT 5');
-$supplements = $conn->query('SELECT * FROM tbl_products WHERE cat_id=3 LIMIT 5');
-$devices = $conn->query('SELECT * FROM tbl_products WHERE cat_id=2 LIMIT 5');
+// Fetch products for home sections filtered by active pharmacy
+$medicines = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 5");
+$supplements = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 5");
+$devices = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 5");
 
-$page_title = "Home";
+$page_title = "Home - " . $current_pharmacy['name'];
 $page_css = "css/index.css";
 include('header.php');
 ?>
+
+<!-- Active Store Welcome Banner -->
+<div style="background: linear-gradient(90deg, #064e3b 0%, #047857 100%); color: #fff; padding: 12px 20px; text-align: center; font-size: 14px;">
+  <div class="content-container" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+    <div>
+      <i class='bx bx-store-alt' style='font-size: 18px; vertical-align: middle;'></i>
+      Browsing Store: <strong><?php echo htmlspecialchars($current_pharmacy['name']); ?></strong> 
+      <span style="opacity: 0.8; font-size: 13px;">(<?php echo htmlspecialchars($current_pharmacy['address']); ?>)</span>
+    </div>
+    <div>
+      <span style="background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 12px; font-size: 12px;">
+        <i class='bx bx-bus'></i> Flat Delivery: रु. <?php echo number_format($current_pharmacy['delivery_fee'], 2); ?>
+      </span>
+    </div>
+  </div>
+</div>
 
 <!-- Hero Banner Section -->
 <section class="hero-section">
