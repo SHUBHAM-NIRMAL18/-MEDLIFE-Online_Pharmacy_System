@@ -45,6 +45,10 @@ if (isset($_POST['login'])) {
                     $_SESSION['admin_email'] = $row['email'];
                     $_SESSION['admin_name'] = $row['name'];
                     $_SESSION['admin_role'] = (int)$row['status'];
+                    $pharm_id = isset($row['pharmacy_id']) ? (int)$row['pharmacy_id'] : 1;
+                    $_SESSION['admin_pharmacy_id'] = $pharm_id;
+                    $p_details = get_pharmacy_details($pharm_id);
+                    $_SESSION['admin_pharmacy_name'] = $p_details['name'];
                     
                     // Unset any conflicting customer session keys
                     unset($_SESSION['user_login']);
