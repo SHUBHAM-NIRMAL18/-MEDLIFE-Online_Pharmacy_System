@@ -66,10 +66,11 @@ if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($
         </div>
 
         <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
-          <i class="bx bx-user"></i><span>Accounts</span>
+          <i class="bx bx-user"></i><span>Accounts & Store</span>
           <i class="bx bx-chevron-right submenu-arrow"></i>
         </div>
         <div class="sidebar-submenu">
+          <a href="pharmacy_settings.php" class="sidebar-sublink"><i class="bx bx-cog"></i> Store Settings</a>
           <a href="admin_register1.php" class="sidebar-sublink">Add Admin / Manager</a>
           <a href="view_user.php" class="sidebar-sublink">Manage Accounts</a>
         </div>
@@ -84,6 +85,11 @@ if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($
           <i class="bx bx-menu"></i>
         </button>
         <h2>Admin Panel</h2>
+        <?php if (!empty($_SESSION['admin_pharmacy_name'])): ?>
+          <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 13px; padding: 4px 12px; border-radius: 20px; font-weight: 500; margin-left: 12px;">
+            <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars($_SESSION['admin_pharmacy_name']); ?>
+          </span>
+        <?php endif; ?>
       </div>
       <div class="topbar-right">
         <span class="admin-name"><span>Welcome,</span> <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>
