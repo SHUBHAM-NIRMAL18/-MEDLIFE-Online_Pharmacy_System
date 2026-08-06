@@ -83,6 +83,12 @@ include('header.php');
             </div>
 
             <!-- Right Side: Sticky Checkout Summary Panel -->
+            <?php 
+            $cart_pharm_id = get_current_pharmacy_id();
+            $cart_pharmacy = get_pharmacy_details($cart_pharm_id);
+            $delivery_charge = (float)$cart_pharmacy['delivery_fee'];
+            $grand_total = $total + $delivery_charge;
+            ?>
             <div class="cart-summary-section">
                 <h3>Cart Totals</h3>
                 
@@ -92,13 +98,13 @@ include('header.php');
                 </div>
                 
                 <div class="summary-row">
-                    <span>Shipping</span>
-                    <span style="color: var(--success); font-weight: 500;">Free Shipping</span>
+                    <span>Delivery Fee (<?php echo htmlspecialchars($cart_pharmacy['name']); ?>)</span>
+                    <span style="color: var(--success); font-weight: 500;">रु. <?php echo number_format($delivery_charge, 2); ?></span>
                 </div>
                 
                 <div class="summary-row total">
                     <span>Total</span>
-                    <span>रु. <?php echo number_format($total, 2); ?></span>
+                    <span>रु. <?php echo number_format($grand_total, 2); ?></span>
                 </div>
                 
                 <div class="summary-actions">

@@ -89,6 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (count($err) == 0) {
         $tracking_order = "medlife" . rand(1000, 9999);
+        $current_pharmacy_id = get_current_pharmacy_id();
+        $pharmacy_details = get_pharmacy_details($current_pharmacy_id);
+        $delivery_fee = isset($pharmacy_details['delivery_fee']) ? (float)$pharmacy_details['delivery_fee'] : 100.00;
         
         // Sum total price of cart
         $subtotal = 0;
@@ -101,12 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $subtotal += ($row_cart['prdct_price'] * $value['quantity']);
             }
         }
-        $grand_total = $subtotal + 100; // Adding flat रु. 100 delivery fee
+        $grand_total = $subtotal + $delivery_fee;
 
         $conn = get_db_connection();
-        $stmt_order = $conn->prepare("INSERT INTO tbl_order (tracking_order, user_id, user_name, phone, address, payment, prescription, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt_order = $conn->prepare("INSERT INTO tbl_order (tracking_order, user_id, user_name, phone, address, payment, prescription, total, pharmacy_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if ($stmt_order) {
-            $stmt_order->bind_param("sisssssd", $tracking_order, $id, $fullname, $phone_val, $address_val, $payment, $uploadPath, $grand_total);
+            $stmt_order->bind_param("sisssssdi", $tracking_order, $id, $fullname, $phone_val, $address_val, $payment, $uploadPath, $grand_total, $current_pharmacy_id);
             if ($stmt_order->execute()) {
                 $order_id = $conn->insert_id;
 
