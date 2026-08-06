@@ -3,6 +3,7 @@ require_once 'config.php';
 include_once 'dashboard.php';
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Fetch summary metrics
 $totalProducts = 0;
@@ -12,22 +13,22 @@ $pendingOrders = 0;
 $totalCustomers = 0;
 $totalRevenue = 0.00;
 
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_products");
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_products WHERE pharmacy_id = $pharmacy_id");
 if ($res) { $totalProducts = (int)$res->fetch_assoc()['cnt']; }
 
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_categories");
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_categories WHERE pharmacy_id = $pharmacy_id");
 if ($res) { $totalCategories = (int)$res->fetch_assoc()['cnt']; }
 
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_order");
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_order WHERE pharmacy_id = $pharmacy_id");
 if ($res) { $totalOrders = (int)$res->fetch_assoc()['cnt']; }
 
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_order WHERE status = 0");
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_order WHERE status = 0 AND pharmacy_id = $pharmacy_id");
 if ($res) { $pendingOrders = (int)$res->fetch_assoc()['cnt']; }
 
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_user");
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_user WHERE pharmacy_id = $pharmacy_id");
 if ($res) { $totalCustomers = (int)$res->fetch_assoc()['cnt']; }
 
-$res = $conn->query("SELECT SUM(total) AS rev FROM tbl_order WHERE status != 2");
+$res = $conn->query("SELECT SUM(total) AS rev FROM tbl_order WHERE status != 2 AND pharmacy_id = $pharmacy_id");
 if ($res) { 
     $row = $res->fetch_assoc();
     $totalRevenue = !empty($row['rev']) ? (float)$row['rev'] : 0.00; 
@@ -36,10 +37,10 @@ if ($res) {
 // Fetch Low Stock Count & Items
 $lowStockCount = 0;
 $lowStockItems = [];
-$ls_cnt_res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_products WHERE stock_quantity <= 10");
+$ls_cnt_res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_products WHERE stock_quantity <= 10 AND pharmacy_id = $pharmacy_id");
 if ($ls_cnt_res) { $lowStockCount = (int)$ls_cnt_res->fetch_assoc()['cnt']; }
 
-$ls_items_res = $conn->query("SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id WHERE p.stock_quantity <= 10 ORDER BY p.stock_quantity ASC LIMIT 4");
+$ls_items_res = $conn->query("SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id WHERE p.stock_quantity <= 10 AND p.pharmacy_id = $pharmacy_id ORDER BY p.stock_quantity ASC LIMIT 4");
 if ($ls_items_res && $ls_items_res->num_rows > 0) {
     while ($l = $ls_items_res->fetch_assoc()) {
         $lowStockItems[] = $l;
@@ -51,7 +52,7 @@ $topBrands = [];
 $maxBrandCount = 1;
 $brandRes = $conn->query("SELECT prdct_company, COUNT(*) AS cnt 
                           FROM tbl_products 
-                          WHERE prdct_company IS NOT NULL AND TRIM(prdct_company) != '' 
+                          WHERE prdct_company IS NOT NULL AND TRIM(prdct_company) != '' AND pharmacy_id = $pharmacy_id
                           GROUP BY prdct_company 
                           ORDER BY cnt DESC 
                           LIMIT 5");
@@ -69,6 +70,7 @@ $recentProducts = [];
 $prodRes = $conn->query("SELECT p.*, c.cat_name 
                          FROM tbl_products p 
                          LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id 
+                         WHERE p.pharmacy_id = $pharmacy_id
                          ORDER BY p.prdct_id DESC 
                          LIMIT 4");
 if ($prodRes && $prodRes->num_rows > 0) {
@@ -79,7 +81,7 @@ if ($prodRes && $prodRes->num_rows > 0) {
 
 // Fetch Recent Orders
 $recentOrders = [];
-$orderRes = $conn->query("SELECT * FROM tbl_order ORDER BY order_id DESC LIMIT 5");
+$orderRes = $conn->query("SELECT * FROM tbl_order WHERE pharmacy_id = $pharmacy_id ORDER BY order_id DESC LIMIT 5");
 if ($orderRes && $orderRes->num_rows > 0) {
     while ($o = $orderRes->fetch_assoc()) {
         $recentOrders[] = $o;
