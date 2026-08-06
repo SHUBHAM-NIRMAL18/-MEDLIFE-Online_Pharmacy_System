@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $conn = get_db_connection();
+$current_pharmacy_id = get_current_pharmacy_id();
 
 // Read filter parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -35,7 +36,7 @@ function get_all_child_category_ids($conn, $parent_id) {
 }
 
 // Build SQL Query
-$where_clauses = [];
+$where_clauses = ["p.pharmacy_id = $current_pharmacy_id"];
 $params = [];
 $types = "";
 
