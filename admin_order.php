@@ -3,6 +3,7 @@ require_once 'config.php';
 include_once('dashboard.php');
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Handle order deletion
 if (isset($_GET['delete_id'])) {
@@ -10,13 +11,13 @@ if (isset($_GET['delete_id'])) {
     
     // Delete order items first (foreign key), then the order
     $conn->query("DELETE FROM tbl_orderitems WHERE order_id = $delete_id");
-    $conn->query("DELETE FROM tbl_order WHERE order_id = $delete_id");
+    $conn->query("DELETE FROM tbl_order WHERE order_id = $delete_id AND pharmacy_id = $pharmacy_id");
     
     echo "<script>window.location.href = 'admin_order.php';</script>";
     exit();
 }
 
-$orders = $conn->query("SELECT * FROM tbl_order ORDER BY order_id DESC");
+$orders = $conn->query("SELECT * FROM tbl_order WHERE pharmacy_id = $pharmacy_id ORDER BY order_id DESC");
 ?>
 
   <div class="admin-page-wrapper">
