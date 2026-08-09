@@ -20,24 +20,36 @@ if ($order_id <= 0) {
 
 $conn = get_db_connection();
 
-// Verify order belongs to user or admin
-$is_admin = isset($_SESSION['admin_login']) ? 1 : 0;
-$order_check = $conn->prepare("SELECT * FROM tbl_order WHERE order_id = ? AND (user_id = ? OR ? = 1)");
-if ($order_check) {
-    $order_check->bind_param("iii", $order_id, $user_id, $is_admin);
-    $order_check->execute();
-    $order_res = $order_check->get_result();
-    
-    if (!$order_res || $order_res->num_rows === 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Order not found']);
-        exit();
-    }
+// Verify order belongs strictly to customer or admin's pharmacy
+$is_admin = isset($_SESSION['admin_login']) && $_SESSION['admin_login'] === true;
+$admin_pharm_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 0;
 
-    $order_info = $order_res->fetch_assoc();
-    $order_check->close();
+if ($is_admin) {
+    $order_check = $conn->prepare("SELECT * FROM tbl_order WHERE order_id = ? AND pharmacy_id = ?");
+    if ($order_check) {
+        $order_check->bind_param("ii", $order_id, $admin_pharm_id);
+        $order_check->execute();
+        $order_res = $order_check->get_result();
+        if (!$order_res || $order_res->num_rows === 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Order not found or access denied']);
+            exit();
+        }
+        $order_info = $order_res->fetch_assoc();
+        $order_check->close();
+    }
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Database error']);
-    exit();
+    $order_check = $conn->prepare("SELECT * FROM tbl_order WHERE order_id = ? AND user_id = ?");
+    if ($order_check) {
+        $order_check->bind_param("ii", $order_id, $user_id);
+        $order_check->execute();
+        $order_res = $order_check->get_result();
+        if (!$order_res || $order_res->num_rows === 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Order not found']);
+            exit();
+        }
+        $order_info = $order_res->fetch_assoc();
+        $order_check->close();
+    }
 }
 
 // Fetch items with product image and catalog name fallback
