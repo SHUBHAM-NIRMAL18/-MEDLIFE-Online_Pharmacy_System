@@ -25,6 +25,8 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             $exp_date = isset($row['exp_date']) ? $row['exp_date'] : '';
             $cat_id = isset($row['cat_id']) ? $row['cat_id'] : 0;
             $stock_qty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 50;
+            $prod_pharmacy_id = isset($row['pharmacy_id']) ? (int)$row['pharmacy_id'] : 1;
+            $product_pharmacy = get_pharmacy_details($prod_pharmacy_id);
         } else {
             header('location:index.php');
             exit();
@@ -158,12 +160,20 @@ include('header.php');
             </div>
 
             <!-- Shipping & Delivery Info Box -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
                     <span style="color: #475569; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                        <i class="bx bx-truck" style="font-size: 18px; color: #059669;"></i> Shipping Fee:
+                        <i class="bx bx-store-alt" style="font-size: 18px; color: #059669;"></i> Sold & Supplied By:
                     </span>
-                    <strong style="color: #0f172a;">Flat रु. 100.00 <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Nationwide Nepal)</span></strong>
+                    <a href="index.php?pharmacy=<?php echo $prod_pharmacy_id; ?>" style="color: #059669; font-weight: 700; text-decoration: none;">
+                        <?php echo htmlspecialchars($product_pharmacy['name']); ?>
+                    </a>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                    <span style="color: #475569; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                        <i class="bx bx-truck" style="font-size: 18px; color: #059669;"></i> Delivery Fee:
+                    </span>
+                    <strong style="color: #0f172a;">Flat रु. <?php echo number_format($product_pharmacy['delivery_fee'], 2); ?> <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Direct Delivery)</span></strong>
                 </div>
                 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
                     <span style="color: #475569; font-weight: 500; display: flex; align-items: center; gap: 6px;">
