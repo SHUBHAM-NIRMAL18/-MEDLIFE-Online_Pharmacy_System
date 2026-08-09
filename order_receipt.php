@@ -305,15 +305,21 @@ include('header.php');
         <!-- Official Pharmacy Tax Receipt Card -->
         <div class="receipt-card">
             
+            <?php 
+            $order_pharm_id = isset($order['pharmacy_id']) ? (int)$order['pharmacy_id'] : 1;
+            $order_pharmacy = get_pharmacy_details($order_pharm_id);
+            ?>
+
             <!-- Header Row -->
             <div class="receipt-header-row">
                 <div class="receipt-logo">
                     <img src="logo/MEDLOGO.png" alt="Medlife Pharmacy">
-                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Medlife Care Pharmacy Ltd.</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #059669; margin-top: 4px;"><?php echo htmlspecialchars($order_pharmacy['name']); ?></div>
+                    <div style="font-size: 11px; color: #64748b;"><?php echo htmlspecialchars($order_pharmacy['address']); ?></div>
                 </div>
 
                 <div class="receipt-title-box">
-                    <h2>OFFICIAL RECEIPT</h2>
+                    <h2>OFFICIAL TAX INVOICE</h2>
                     <div class="receipt-meta-line"><strong>Receipt #:</strong> REC-<?php echo str_pad($order['order_id'], 6, '0', STR_PAD_LEFT); ?></div>
                     <div class="receipt-meta-line"><strong>Tracking Ref:</strong> <span style="font-family: monospace; font-weight: 700; color: #059669;"><?php echo htmlspecialchars($order['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></span></div>
                     <div class="receipt-meta-line"><strong>Date:</strong> <?php echo date("F d, Y, g:i A", strtotime($order['created_at'])); ?></div>
@@ -324,10 +330,11 @@ include('header.php');
             <div class="receipt-info-grid">
                 <div class="info-block">
                     <h4>Pharmacy Supplier</h4>
-                    <p><strong>Medlife Care Pharmacy</strong></p>
-                    <p>Kathmandu, Nepal</p>
-                    <p><strong>PAN Reg No:</strong> 609823145</p>
-                    <p><strong>Phone:</strong> +977 1-4228999</p>
+                    <p><strong><?php echo htmlspecialchars($order_pharmacy['name']); ?></strong></p>
+                    <p><?php echo htmlspecialchars($order_pharmacy['address']); ?></p>
+                    <p><strong>PAN Reg No:</strong> <?php echo htmlspecialchars($order_pharmacy['pan_number'] ?? '609823145'); ?></p>
+                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($order_pharmacy['phone']); ?></p>
+                    <p><strong>Store Email:</strong> <?php echo htmlspecialchars($order_pharmacy['email']); ?></p>
                 </div>
 
                 <div class="info-block">
