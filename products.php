@@ -242,7 +242,7 @@ if (isset($_POST['btnAdd'])) {
                             <i class="bx bx-category"></i>
                             <select id="category" name="category" class="form-select" required>
                                 <option value="" disabled <?php echo empty($cat_id) ? 'selected' : ''; ?>>Select Category</option>
-                                <?php echo get_category_options($conn, 0, "", $cat_id); ?>
+                                <?php echo get_category_options($conn, 0, "", $cat_id, $pharmacy_id); ?>
                             </select>
                         </div>
                         <?php if (isset($err['category'])): ?>
