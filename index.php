@@ -10,10 +10,58 @@ $conn = get_db_connection();
 $current_pharmacy_id = get_current_pharmacy_id();
 $current_pharmacy = get_pharmacy_details($current_pharmacy_id);
 
-// Fetch products for home sections filtered by active pharmacy
-$medicines = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 5");
-$supplements = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 5");
-$devices = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 5");
+// Helper to fetch category IDs matching keywords for current pharmacy
+if (!function_exists('get_home_cat_ids_by_keyword')) {
+    function get_home_cat_ids_by_keyword($conn, $pharmacy_id, $keyword) {
+        $ids = [];
+        $stmt = $conn->prepare("SELECT cat_id FROM tbl_categories WHERE (LOWER(cat_name) LIKE ? OR LOWER(cat_name) LIKE ?) AND pharmacy_id = ?");
+        if ($stmt) {
+            $kw1 = "%" . strtolower($keyword) . "%";
+            $kw2 = "%" . strtolower($keyword) . "s%";
+            $stmt->bind_param("ssi", $kw1, $kw2, $pharmacy_id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($res) {
+                while ($r = $res->fetch_assoc()) {
+                    $ids[] = (int)$r['cat_id'];
+                    $sub_res = $conn->query("SELECT cat_id FROM tbl_categories WHERE parent_id = " . (int)$r['cat_id'] . " AND pharmacy_id = $pharmacy_id");
+                    if ($sub_res) {
+                        while ($sr = $sub_res->fetch_assoc()) {
+                            $ids[] = (int)$sr['cat_id'];
+                        }
+                    }
+                }
+            }
+            $stmt->close();
+        }
+        return array_unique($ids);
+    }
+}
+
+$med_cat_ids = get_home_cat_ids_by_keyword($conn, $current_pharmacy_id, 'medicine');
+$supp_cat_ids = get_home_cat_ids_by_keyword($conn, $current_pharmacy_id, 'supplement');
+$dev_cat_ids = get_home_cat_ids_by_keyword($conn, $current_pharmacy_id, 'device');
+
+if (!empty($med_cat_ids)) {
+    $med_in = implode(',', $med_cat_ids);
+    $medicines = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id AND cat_id IN ($med_in) ORDER BY prdct_id DESC LIMIT 4");
+} else {
+    $medicines = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 4");
+}
+
+if (!empty($supp_cat_ids)) {
+    $supp_in = implode(',', $supp_cat_ids);
+    $supplements = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id AND cat_id IN ($supp_in) ORDER BY prdct_id DESC LIMIT 4");
+} else {
+    $supplements = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 4");
+}
+
+if (!empty($dev_cat_ids)) {
+    $dev_in = implode(',', $dev_cat_ids);
+    $devices = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id AND cat_id IN ($dev_in) ORDER BY prdct_id DESC LIMIT 4");
+} else {
+    $devices = $conn->query("SELECT * FROM tbl_products WHERE pharmacy_id = $current_pharmacy_id ORDER BY prdct_id DESC LIMIT 4");
+}
 
 $page_title = "Home - " . $current_pharmacy['name'];
 $page_css = "css/index.css";
