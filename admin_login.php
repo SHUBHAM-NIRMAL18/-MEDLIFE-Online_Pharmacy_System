@@ -33,41 +33,43 @@ if (isset($_POST['login'])) {
     if (count($err) == 0) {
         try {
             $connection = get_db_connection();
-            $stmt = $connection->prepare("SELECT * FROM tbl_admin WHERE email = ? AND password = ? AND status = 1");
+            $stmt = $connection->prepare("SELECT a.*, p.name AS pharmacy_name, p.status AS pharmacy_status FROM tbl_admin a LEFT JOIN tbl_pharmacies p ON a.pharmacy_id = p.pharmacy_id WHERE a.email = ? AND a.password = ? AND a.status = 1");
             if ($stmt) {
                 $stmt->bind_param("ss", $email, $password);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 if ($result && $result->num_rows == 1) {
                     $row = $result->fetch_assoc();
-                    $_SESSION['admin_login'] = true;
-                    $_SESSION['admin_id'] = (int)$row['admin_id'];
-                    $_SESSION['admin_email'] = $row['email'];
-                    $_SESSION['admin_name'] = $row['name'];
-                    $_SESSION['admin_role'] = (int)$row['status'];
-                    $pharm_id = isset($row['pharmacy_id']) ? (int)$row['pharmacy_id'] : 1;
-                    $_SESSION['admin_pharmacy_id'] = $pharm_id;
-                    $p_details = get_pharmacy_details($pharm_id);
-                    $_SESSION['admin_pharmacy_name'] = $p_details['name'];
-                    
-                    // Unset any conflicting customer session keys
-                    unset($_SESSION['user_login']);
-                    unset($_SESSION['user_id']);
-                    unset($_SESSION['email']);
-                    unset($_SESSION['name']);
-                    unset($_SESSION['login_status']);
-                    
-                    $_SESSION['toast'] = [
-                        'type' => 'success',
-                        'title' => 'Admin Access',
-                        'message' => 'Logged in successfully! Welcome, ' . $row['name'] . '.'
-                    ];
 
-                    if (isset($_POST['remember'])) {
-                        setcookie('emailcookie', $email, time() + 86400);
+                    // Check if tenant pharmacy is suspended
+                    if (isset($row['pharmacy_status']) && (int)$row['pharmacy_status'] === 0) {
+                        $error = 'Your pharmacy account has been suspended by platform administration. Please contact support.';
+                    } else {
+                        $_SESSION['admin_login'] = true;
+                        $_SESSION['admin_id'] = (int)$row['admin_id'];
+                        $_SESSION['admin_email'] = $row['email'];
+                        $_SESSION['admin_name'] = $row['name'];
+                        $_SESSION['admin_role'] = (int)$row['status'];
+                        $pharm_id = isset($row['pharmacy_id']) ? (int)$row['pharmacy_id'] : 1;
+                        $_SESSION['admin_pharmacy_id'] = $pharm_id;
+                        $pharm_name = !empty($row['pharmacy_name']) ? $row['pharmacy_name'] : 'MedLife Central Pharmacy';
+                        $_SESSION['admin_pharmacy_name'] = $pharm_name;
+                        
+                        // Unset any conflicting customer session keys
+                        unset($_SESSION['user_login'], $_SESSION['user_id'], $_SESSION['email'], $_SESSION['name'], $_SESSION['login_status']);
+                        
+                        $_SESSION['toast'] = [
+                            'type' => 'success',
+                            'title' => 'Admin Access',
+                            'message' => 'Logged in successfully! Welcome, ' . $row['name'] . '.'
+                        ];
+
+                        if (isset($_POST['remember'])) {
+                            setcookie('emailcookie', $email, time() + 86400);
+                        }
+                        header('location:admin_home.php');
+                        exit();
                     }
-                    header('location:admin_home.php');
-                    exit();
                 } else {
                     $error = 'Incorrect email or password';
                 }
