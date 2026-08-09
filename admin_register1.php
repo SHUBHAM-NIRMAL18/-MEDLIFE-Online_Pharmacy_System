@@ -58,10 +58,11 @@ if (isset($_POST['btnadRegister'])) {
 
     // Insert into Database if no errors
     if (count($err) === 0) {
+        $pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
         $hashed_password = md5($raw_password);
-        $stmt = $conn->prepare("INSERT INTO tbl_admin (name, email, password, status) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO tbl_admin (name, email, password, status, pharmacy_id) VALUES (?, ?, ?, ?, ?)");
         if ($stmt) {
-            $stmt->bind_param("sssi", $name, $email, $hashed_password, $status);
+            $stmt->bind_param("sssii", $name, $email, $hashed_password, $status, $pharmacy_id);
             $stmt->execute();
             if ($stmt->affected_rows === 1 && $stmt->insert_id > 0) {
                 $message = "Account created successfully!";
@@ -76,9 +77,10 @@ if (isset($_POST['btnadRegister'])) {
     }
 }
 
-// Fetch total admin accounts count for widget
+// Fetch total admin accounts count for widget scoped to this pharmacy
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 $total_admins = 0;
-$admin_cnt_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_admin");
+$admin_cnt_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_admin WHERE pharmacy_id = $pharmacy_id");
 if ($admin_cnt_res) {
     $total_admins = (int)$admin_cnt_res->fetch_assoc()['total'];
 }
