@@ -6,14 +6,33 @@ $conn = get_db_connection();
 $pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Handle order deletion
-if (isset($_GET['delete_id'])) {
+if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     $delete_id = (int)$_GET['delete_id'];
     
-    // Delete order items first (foreign key), then the order
-    $conn->query("DELETE FROM tbl_orderitems WHERE order_id = $delete_id");
-    $conn->query("DELETE FROM tbl_order WHERE order_id = $delete_id AND pharmacy_id = $pharmacy_id");
-    
-    echo "<script>window.location.href = 'admin_order.php';</script>";
+    // Verify that the order strictly belongs to this pharmacy tenant before deleting items
+    $chk_stmt = $conn->prepare("SELECT order_id FROM tbl_order WHERE order_id = ? AND pharmacy_id = ?");
+    if ($chk_stmt) {
+        $chk_stmt->bind_param("ii", $delete_id, $pharmacy_id);
+        $chk_stmt->execute();
+        $chk_res = $chk_stmt->get_result();
+        if ($chk_res && $chk_res->num_rows > 0) {
+            $conn->query("DELETE FROM tbl_orderitems WHERE order_id = $delete_id");
+            $conn->query("DELETE FROM tbl_order WHERE order_id = $delete_id AND pharmacy_id = $pharmacy_id");
+            $_SESSION['toast'] = [
+                'type' => 'success',
+                'title' => 'Order Deleted',
+                'message' => "Order #$delete_id has been removed successfully."
+            ];
+        } else {
+            $_SESSION['toast'] = [
+                'type' => 'error',
+                'title' => 'Delete Failed',
+                'message' => 'Order not found or does not belong to your store.'
+            ];
+        }
+        $chk_stmt->close();
+    }
+    header('Location: admin_order.php');
     exit();
 }
 
