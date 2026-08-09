@@ -3,6 +3,7 @@ require_once 'config.php';
 include_once 'dashboard.php';
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Tab selection: 'customer' (default) vs 'admin'
 $tab = isset($_GET['tab']) && $_GET['tab'] === 'admin' ? 'admin' : 'customer';
@@ -10,15 +11,15 @@ $page = isset($_GET['page']) && (int)$_GET['page'] > 0 ? (int)$_GET['page'] : 1;
 $limit = 8; // Items per page
 $offset = ($page - 1) * $limit;
 
-// Count total records
+// Count total records scoped to pharmacy
 $total_records = 0;
 if ($tab === 'admin') {
-    $count_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_admin");
+    $count_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_admin WHERE pharmacy_id = $pharmacy_id");
     if ($count_res) {
         $total_records = (int)$count_res->fetch_assoc()['total'];
     }
 } else {
-    $count_res = $conn->query("SELECT COUNT(*) AS total FROM tbl_user");
+    $count_res = $conn->query("SELECT COUNT(DISTINCT u.user_id) AS total FROM tbl_user u WHERE u.pharmacy_id = $pharmacy_id OR u.user_id IN (SELECT user_id FROM tbl_order WHERE pharmacy_id = $pharmacy_id)");
     if ($count_res) {
         $total_records = (int)$count_res->fetch_assoc()['total'];
     }
@@ -30,24 +31,34 @@ if ($page > $total_pages) {
     $offset = ($page - 1) * $limit;
 }
 
-// Fetch paginated account records
+// Fetch paginated account records scoped to pharmacy
 $accounts = [];
 if ($tab === 'admin') {
-    $stmt = $conn->prepare("SELECT * FROM tbl_admin ORDER BY admin_id DESC LIMIT ? OFFSET ?");
-} else {
-    $stmt = $conn->prepare("SELECT * FROM tbl_user ORDER BY user_id DESC LIMIT ? OFFSET ?");
-}
-
-if ($stmt) {
-    $stmt->bind_param("ii", $limit, $offset);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($res) {
-        while ($row = $res->fetch_assoc()) {
-            $accounts[] = $row;
+    $stmt = $conn->prepare("SELECT * FROM tbl_admin WHERE pharmacy_id = ? ORDER BY admin_id DESC LIMIT ? OFFSET ?");
+    if ($stmt) {
+        $stmt->bind_param("iii", $pharmacy_id, $limit, $offset);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $accounts[] = $row;
+            }
         }
+        $stmt->close();
     }
-    $stmt->close();
+} else {
+    $stmt = $conn->prepare("SELECT DISTINCT u.* FROM tbl_user u WHERE (u.pharmacy_id = ? OR u.user_id IN (SELECT user_id FROM tbl_order WHERE pharmacy_id = ?)) ORDER BY u.user_id DESC LIMIT ? OFFSET ?");
+    if ($stmt) {
+        $stmt->bind_param("iiii", $pharmacy_id, $pharmacy_id, $limit, $offset);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $accounts[] = $row;
+            }
+        }
+        $stmt->close();
+    }
 }
 
 $start_item = $total_records > 0 ? $offset + 1 : 0;
