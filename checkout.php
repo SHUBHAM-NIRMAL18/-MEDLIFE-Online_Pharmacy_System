@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (count($err) == 0) {
         $tracking_order = "medlife" . rand(1000, 9999);
-        $current_pharmacy_id = get_current_pharmacy_id();
+        $current_pharmacy_id = isset($_SESSION['cart_pharmacy_id']) ? (int)$_SESSION['cart_pharmacy_id'] : get_current_pharmacy_id();
         $pharmacy_details = get_pharmacy_details($current_pharmacy_id);
         $delivery_fee = isset($pharmacy_details['delivery_fee']) ? (float)$pharmacy_details['delivery_fee'] : 100.00;
         
@@ -142,11 +142,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Clear Shopping Cart and set toast notification
-                unset($_SESSION['cart']);
+                unset($_SESSION['cart'], $_SESSION['cart_pharmacy_id']);
                 $_SESSION['toast'] = [
                     'type' => 'success',
                     'title' => 'Order Placed',
-                    'message' => 'Your pharmacy order has been placed successfully! Tracking: ' . $tracking_order
+                    'message' => 'Your pharmacy order has been placed successfully with ' . $pharmacy_details['name'] . '! Tracking: ' . $tracking_order
                 ];
                 
                 header("Location: order_placed.php");
