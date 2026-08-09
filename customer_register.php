@@ -49,19 +49,23 @@ if (isset($_POST['btnRegister'])){
   if (count($err) == 0) {
     try {
       $conn = get_db_connection();
-      $sql = "insert into tbl_user(name,email,phone,address,password,gender) values ('$name','$email','$phone','$address','$password','$gender')";
-      $conn->query($sql);
-      if ($conn->affected_rows == 1 && $conn->insert_id > 0) {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+      $curr_pharm_id = get_current_pharmacy_id();
+      $stmt_reg = $conn->prepare("INSERT INTO tbl_user (name, email, phone, address, password, gender, pharmacy_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+      if ($stmt_reg) {
+        $stmt_reg->bind_param("ssssssi", $name, $email, $phone, $address, $password, $gender, $curr_pharm_id);
+        if ($stmt_reg->execute()) {
+          if (session_status() === PHP_SESSION_NONE) {
+              session_start();
+          }
+          $_SESSION['toast'] = [
+              'type' => 'success',
+              'title' => 'Registration Successful',
+              'message' => 'Your account has been created, ' . $name . '! Please log in.'
+          ];
+          header('location:customer_login.php');
+          exit();
         }
-        $_SESSION['toast'] = [
-            'type' => 'success',
-            'title' => 'Registration Successful',
-            'message' => 'Your account has been created, ' . $name . '! Please log in.'
-        ];
-        header('location:customer_login.php');
-        exit();
+        $stmt_reg->close();
       }
     } catch(Exception $e) {
       $message = '<div class="alert alert-error">Database error: ' . htmlspecialchars($e->getMessage()) . '</div>';
