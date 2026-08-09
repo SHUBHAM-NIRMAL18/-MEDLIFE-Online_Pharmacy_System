@@ -32,11 +32,13 @@ if (isset($_POST['btnlogin'])) {
   if (count($err) == 0) {
     try {
       $connection = get_db_connection();
-      $sql = "select * from tbl_user where email='$email' and password='$password'";
-      $result = $connection->query($sql);
-      if ($result->num_rows == 1) {
-        $row = $result->fetch_assoc();
-        if ($row['email'] == $email && $row['password'] == $password) {
+      $stmt = $connection->prepare("SELECT * FROM tbl_user WHERE email = ? AND password = ?");
+      if ($stmt) {
+        $stmt->bind_param("ss", $email, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows === 1) {
+          $row = $result->fetch_assoc();
           if (session_status() === PHP_SESSION_NONE) {
             session_start();
           }
@@ -47,11 +49,7 @@ if (isset($_POST['btnlogin'])) {
           $_SESSION['login_status'] = true;
           
           // Unset any conflicting admin session keys
-          unset($_SESSION['admin_login']);
-          unset($_SESSION['admin_id']);
-          unset($_SESSION['admin_email']);
-          unset($_SESSION['admin_name']);
-          unset($_SESSION['admin_role']);
+          unset($_SESSION['admin_login'], $_SESSION['admin_id'], $_SESSION['admin_email'], $_SESSION['admin_name'], $_SESSION['admin_role'], $_SESSION['admin_pharmacy_id'], $_SESSION['admin_pharmacy_name'], $_SESSION['impersonating_super_admin']);
           
           $_SESSION['toast'] = [
               'type' => 'success',
@@ -64,12 +62,13 @@ if (isset($_POST['btnlogin'])) {
           }
           header('location:user_dashboard.php');
           exit();
-        } 
-      } else {
-        $error = 'Incorrect email or password';
+        } else {
+          $error = 'Incorrect email or password';
+        }
+        $stmt->close();
       }
-    } catch(Exception $ex) {
-      die('Database Error:.' . $ex->getMessage());
+    } catch(Exception $e) {
+      $error = 'Database error: ' . htmlspecialchars($e->getMessage());
     }
   }
 } 
