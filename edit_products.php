@@ -1,5 +1,6 @@
 <?php 
 require_once 'config.php';
+$pharmacy_id = require_admin_tenant();
 
 if (!isset($_GET['prdct_id']) || !is_numeric($_GET['prdct_id'])) {
     header("Location: view_products.php?msg=1");
@@ -66,11 +67,16 @@ if (isset($_POST['btnUpdate'])) {
     }
 
     if (count($err) === 0) {
-        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ?, stock_quantity = ? WHERE prdct_id = ?");
+        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ?, stock_quantity = ? WHERE prdct_id = ? AND pharmacy_id = ?");
         if ($stmt) {
-            $stmt->bind_param("ssdssisii", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $stock_quantity, $id);
+            $stmt->bind_param("ssdssisiii", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $stock_quantity, $id, $pharmacy_id);
             $stmt->execute();
             $stmt->close();
+            $_SESSION['toast'] = [
+                'type' => 'success',
+                'title' => 'Product Updated',
+                'message' => 'Product specifications updated successfully!'
+            ];
             header("Location: view_products.php?updated=1");
             exit();
         } else {
@@ -79,11 +85,11 @@ if (isset($_POST['btnUpdate'])) {
     }
 }
 
-// Fetch Product Details
+// Fetch Product Details scoped strictly to tenant
 $product = null;
-$stmt = $conn->prepare("SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id WHERE p.prdct_id = ?");
+$stmt = $conn->prepare("SELECT p.*, c.cat_name FROM tbl_products p LEFT JOIN tbl_categories c ON p.cat_id = c.cat_id WHERE p.prdct_id = ? AND p.pharmacy_id = ?");
 if ($stmt) {
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("ii", $id, $pharmacy_id);
     $stmt->execute();
     $res = $stmt->get_result();
     if ($res && $res->num_rows === 1) {
@@ -93,16 +99,21 @@ if ($stmt) {
 }
 
 if (!$product) {
+    $_SESSION['toast'] = [
+        'type' => 'error',
+        'title' => 'Access Denied',
+        'message' => 'Product not found or does not belong to your pharmacy catalog.'
+    ];
     header("Location: view_products.php?msg=1");
     exit();
 }
 
-// Helper to fetch category options with indentation
-function get_category_options($conn, $parent = 0, $indent = "", $selected = 0) {
+// Helper to fetch category options with indentation scoped to tenant
+function get_category_options($conn, $parent = 0, $indent = "", $selected = 0, $pharmacy_id = 1) {
     $html = "";
-    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? ORDER BY cat_name ASC");
+    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? AND pharmacy_id = ? ORDER BY cat_name ASC");
     if ($stmt) {
-        $stmt->bind_param("i", $parent);
+        $stmt->bind_param("ii", $parent, $pharmacy_id);
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res) {
@@ -110,7 +121,7 @@ function get_category_options($conn, $parent = 0, $indent = "", $selected = 0) {
                 $is_sel = ($row['cat_id'] == $selected) ? "selected" : "";
                 $prefix = !empty($indent) ? $indent . "└─ " : "";
                 $html .= '<option value="' . $row['cat_id'] . '" ' . $is_sel . '>' . $prefix . htmlspecialchars($row['cat_name'], ENT_QUOTES, 'UTF-8') . '</option>';
-                $html .= get_category_options($conn, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected);
+                $html .= get_category_options($conn, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected, $pharmacy_id);
             }
         }
         $stmt->close();
@@ -221,7 +232,7 @@ include_once 'dashboard.php';
                             <i class="bx bx-category"></i>
                             <select id="cat_id" name="cat_id" class="form-select" required>
                                 <option value="" disabled>Select Category</option>
-                                <?php echo get_category_options($conn, 0, "", $product['cat_id']); ?>
+                                <?php echo get_category_options($conn, 0, "", $product['cat_id'], $pharmacy_id); ?>
                             </select>
                         </div>
                         <?php if (isset($err['cat_id'])): ?>
