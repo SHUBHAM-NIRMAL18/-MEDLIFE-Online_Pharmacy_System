@@ -1,12 +1,7 @@
 <?php 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($_SESSION['admin_id'])) {
-  header('location:admin_login.php?msg=1');
-  exit();
-}
+require_once 'config.php';
+$active_admin_pharmacy_id = require_admin_tenant();
+$active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,11 +13,24 @@ if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($
   </head>
   <body class="admin-shell">
 
+    <?php if (isset($_SESSION['impersonating_super_admin']) && $_SESSION['impersonating_super_admin'] === true): ?>
+      <!-- Super Admin Impersonation Notice Bar -->
+      <div style="background: linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%); color: #ffffff; padding: 8px 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; z-index: 9999; position: relative;">
+        <div>
+          <i class='bx bx-user-pin' style='font-size: 16px; vertical-align: middle;'></i>
+          SUPER ADMIN IMPERSONATION: Currently managing <strong><?php echo htmlspecialchars($active_pharmacy_info['name']); ?></strong> (Tenant #<?php echo $active_admin_pharmacy_id; ?>)
+        </div>
+        <a href="saas_admin.php?exit_impersonation=1" style="background: #ffffff; color: #7c3aed; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+          <i class='bx bx-exit'></i> Exit Impersonation & Return to SaaS Portal
+        </a>
+      </div>
+    <?php endif; ?>
+
     <!-- Sidebar -->
     <nav class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <div class="brand-icon"><i class="bx bx-plus-medical"></i></div>
-        <div class="brand-text">Medlife<small>Admin Panel</small></div>
+        <div class="brand-text">Medlife<small>Tenant Admin</small></div>
       </div>
 
       <div class="sidebar-nav-section">
@@ -85,13 +93,17 @@ if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($
           <i class="bx bx-menu"></i>
         </button>
         <h2>Admin Panel</h2>
-        <?php if (!empty($_SESSION['admin_pharmacy_name'])): ?>
-          <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 13px; padding: 4px 12px; border-radius: 20px; font-weight: 500; margin-left: 12px;">
-            <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars($_SESSION['admin_pharmacy_name']); ?>
+        <?php if (!empty($active_pharmacy_info['name'])): ?>
+          <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 13px; padding: 4px 12px; border-radius: 20px; font-weight: 500; margin-left: 12px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars($active_pharmacy_info['name']); ?>
+            <span style="font-size: 10px; background: #10b981; color: #fff; padding: 1px 6px; border-radius: 10px; font-weight: 700; text-transform: uppercase;"><?php echo htmlspecialchars($active_pharmacy_info['plan'] ?? 'Pro'); ?></span>
           </span>
         <?php endif; ?>
       </div>
-      <div class="topbar-right">
+      <div class="topbar-right" style="display: flex; align-items: center; gap: 14px;">
+        <a href="index.php?pharmacy=<?php echo $active_admin_pharmacy_id; ?>" target="_blank" class="topbar-store-link" style="color: #059669; background: rgba(5, 150, 105, 0.12); border: 1px solid rgba(5, 150, 105, 0.25); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+          <i class="bx bx-link-external"></i> View Public Storefront
+        </a>
         <span class="admin-name"><span>Welcome,</span> <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>
         <a href="admin_logout.php" class="topbar-logout">
           <i class="bx bx-log-out"></i> Logout
