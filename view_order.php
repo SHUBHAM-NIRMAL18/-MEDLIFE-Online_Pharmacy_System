@@ -3,31 +3,37 @@ require_once 'config.php';
 include_once('dashboard.php');
 
 $conn = get_db_connection();
+$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
 
 // Handle status update with confirmation
 if (isset($_POST['btnStatus'])) {
     $odr_id = (int)$_POST['order_id'];
     $order_status = (int)$_POST['order_status'];
 
-    $stmt = $conn->prepare("UPDATE tbl_order SET status = ? WHERE order_id = ?");
+    $stmt = $conn->prepare("UPDATE tbl_order SET status = ? WHERE order_id = ? AND pharmacy_id = ?");
     if ($stmt) {
-        $stmt->bind_param("ii", $order_status, $odr_id);
+        $stmt->bind_param("iii", $order_status, $odr_id, $pharmacy_id);
         $stmt->execute();
         $stmt->close();
+        $_SESSION['toast'] = [
+            'type' => 'success',
+            'title' => 'Order Status Updated',
+            'message' => "Order #$odr_id status changed successfully."
+        ];
     }
 
-    echo "<script>window.location.href = 'view_order.php?order_id=" . $odr_id . "&updated=1';</script>";
+    header("Location: view_order.php?order_id=" . $odr_id . "&updated=1");
     exit();
 }
 
-// Fetch order data
+// Fetch order data strictly scoped to tenant
 $data = null;
 $order_id = 0;
-if (isset($_GET['order_id'])) {
+if (isset($_GET['order_id']) && is_numeric($_GET['order_id'])) {
     $order_id = (int)$_GET['order_id'];
-    $stmt = $conn->prepare("SELECT * FROM tbl_order WHERE order_id = ?");
+    $stmt = $conn->prepare("SELECT * FROM tbl_order WHERE order_id = ? AND pharmacy_id = ?");
     if ($stmt) {
-        $stmt->bind_param("i", $order_id);
+        $stmt->bind_param("ii", $order_id, $pharmacy_id);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result && $result->num_rows > 0) {
@@ -38,7 +44,12 @@ if (isset($_GET['order_id'])) {
 }
 
 if (!$data) {
-    echo "<script>window.location.href = 'admin_order.php';</script>";
+    $_SESSION['toast'] = [
+        'type' => 'error',
+        'title' => 'Access Denied',
+        'message' => 'Order not found or does not belong to your store.'
+    ];
+    header("Location: admin_order.php");
     exit();
 }
 
