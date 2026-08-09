@@ -1,5 +1,6 @@
 <?php 
 require_once 'config.php';
+$pharmacy_id = require_admin_tenant();
 
 if (!isset($_GET['cat_id']) || !is_numeric($_GET['cat_id'])) {
     header("Location: viewcat.php?msg=1");
@@ -12,11 +13,11 @@ $err = [];
 $conn = get_db_connection();
 
 // Helper to fetch category options with indentation (excluding self to avoid cyclic loops)
-function get_category_options_exclude($conn, $exclude_id, $parent = 0, $indent = "", $selected = 0) {
+function get_category_options_exclude($conn, $exclude_id, $parent = 0, $indent = "", $selected = 0, $pharmacy_id = 1) {
     $html = "";
-    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? AND cat_id != ? ORDER BY cat_name ASC");
+    $stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE parent_id = ? AND cat_id != ? AND pharmacy_id = ? ORDER BY cat_name ASC");
     if ($stmt) {
-        $stmt->bind_param("ii", $parent, $exclude_id);
+        $stmt->bind_param("iii", $parent, $exclude_id, $pharmacy_id);
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res) {
@@ -24,7 +25,7 @@ function get_category_options_exclude($conn, $exclude_id, $parent = 0, $indent =
                 $is_sel = ($row['cat_id'] == $selected) ? "selected" : "";
                 $prefix = !empty($indent) ? $indent . "└─ " : "";
                 $html .= '<option value="' . $row['cat_id'] . '" ' . $is_sel . '>' . $prefix . htmlspecialchars($row['cat_name'], ENT_QUOTES, 'UTF-8') . '</option>';
-                $html .= get_category_options_exclude($conn, $exclude_id, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected);
+                $html .= get_category_options_exclude($conn, $exclude_id, $row['cat_id'], $indent . "&nbsp;&nbsp;&nbsp;&nbsp;", $selected, $pharmacy_id);
             }
         }
         $stmt->close();
@@ -49,11 +50,16 @@ if (isset($_POST['btnUpdate'])) {
     }
 
     if (count($err) === 0) {
-        $stmt = $conn->prepare("UPDATE tbl_categories SET cat_name = ?, cat_status = ?, parent_id = ? WHERE cat_id = ?");
+        $stmt = $conn->prepare("UPDATE tbl_categories SET cat_name = ?, cat_status = ?, parent_id = ? WHERE cat_id = ? AND pharmacy_id = ?");
         if ($stmt) {
-            $stmt->bind_param("ssii", $cat_name, $cat_status, $parent_id, $id);
+            $stmt->bind_param("ssiii", $cat_name, $cat_status, $parent_id, $id, $pharmacy_id);
             $stmt->execute();
             $stmt->close();
+            $_SESSION['toast'] = [
+                'type' => 'success',
+                'title' => 'Category Updated',
+                'message' => 'Category structure updated successfully!'
+            ];
             header("Location: viewcat.php?updated=1");
             exit();
         } else {
@@ -62,11 +68,11 @@ if (isset($_POST['btnUpdate'])) {
     }
 }
 
-// Fetch current category record
+// Fetch current category record strictly for this tenant
 $category = null;
-$stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE cat_id = ?");
+$stmt = $conn->prepare("SELECT * FROM tbl_categories WHERE cat_id = ? AND pharmacy_id = ?");
 if ($stmt) {
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("ii", $id, $pharmacy_id);
     $stmt->execute();
     $res = $stmt->get_result();
     if ($res && $res->num_rows === 1) {
@@ -76,6 +82,11 @@ if ($stmt) {
 }
 
 if (!$category) {
+    $_SESSION['toast'] = [
+        'type' => 'error',
+        'title' => 'Access Denied',
+        'message' => 'Category not found or does not belong to your pharmacy.'
+    ];
     header("Location: viewcat.php?msg=1");
     exit();
 }
@@ -140,7 +151,7 @@ include_once 'dashboard.php';
                         <i class="bx bx-git-repo-forked"></i>
                         <select id="parent_id" name="parent_id" class="form-select">
                             <option value="0" <?php echo $category['parent_id'] == 0 ? 'selected' : ''; ?>>Root Category (Top-Level Category)</option>
-                            <?php echo get_category_options_exclude($conn, $id, 0, "", $category['parent_id']); ?>
+                            <?php echo get_category_options_exclude($conn, $id, 0, "", $category['parent_id'], $pharmacy_id); ?>
                         </select>
                     </div>
                     <?php if (isset($err['parent_id'])): ?>
