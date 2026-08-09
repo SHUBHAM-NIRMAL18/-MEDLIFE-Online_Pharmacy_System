@@ -102,7 +102,12 @@ if (!function_exists('get_current_pharmacy_id')) {
         }
         // Allow URL override e.g. ?pharmacy=2
         if (isset($_GET['pharmacy']) && is_numeric($_GET['pharmacy'])) {
-            $_SESSION['current_pharmacy_id'] = (int)$_GET['pharmacy'];
+            $req_id = (int)$_GET['pharmacy'];
+            $conn = get_db_connection();
+            $chk = $conn->query("SELECT pharmacy_id FROM tbl_pharmacies WHERE pharmacy_id = $req_id AND status = 1");
+            if ($chk && $chk->num_rows > 0) {
+                $_SESSION['current_pharmacy_id'] = $req_id;
+            }
         }
         return isset($_SESSION['current_pharmacy_id']) ? (int)$_SESSION['current_pharmacy_id'] : 1;
     }
@@ -128,7 +133,10 @@ if (!function_exists('get_pharmacy_details')) {
             $stmt->execute();
             $res = $stmt->get_result();
             if ($res && $res->num_rows > 0) {
-                return $res->fetch_assoc();
+                $data = $res->fetch_assoc();
+                if (empty($data['pan_number'])) $data['pan_number'] = '609823145';
+                if (empty($data['business_hours'])) $data['business_hours'] = 'Sun - Fri: 8:00 AM - 9:00 PM';
+                return $data;
             }
         }
         return [
@@ -138,10 +146,12 @@ if (!function_exists('get_pharmacy_details')) {
             'email' => 'central@medlife.com',
             'phone' => '9800000000',
             'address' => 'Central Health Plaza, Kathmandu',
+            'logo' => 'img/pharmacy-default.png',
+            'pan_number' => '609823145',
+            'business_hours' => 'Sun - Fri: 8:00 AM - 9:00 PM',
             'plan' => 'Enterprise',
             'delivery_fee' => 100.00,
-            'status' => 1,
-            'logo' => 'img/pharmacy-default.png'
+            'status' => 1
         ];
     }
 }
@@ -160,5 +170,67 @@ if (!function_exists('get_active_pharmacies')) {
         return $list;
     }
 }
+
+// Helper to get current admin's pharmacy ID strictly
+if (!function_exists('get_admin_pharmacy_id')) {
+    function get_admin_pharmacy_id() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        return isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
+    }
+}
+
+// Helper to check if logged in as Super Admin
+if (!function_exists('is_super_admin')) {
+    function is_super_admin() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        return isset($_SESSION['super_admin_login']) && $_SESSION['super_admin_login'] === true;
+    }
+}
+
+// Security Middleware to validate admin authentication and tenant active status
+if (!function_exists('require_admin_tenant')) {
+    function require_admin_tenant() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['admin_login']) || !isset($_SESSION['admin_id']) || empty($_SESSION['admin_id'])) {
+            header('Location: admin_login.php?msg=1');
+            exit();
+        }
+
+        $pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
+        $conn = get_db_connection();
+
+        // Check if the tenant pharmacy is suspended
+        $stmt = $conn->prepare("SELECT name, status FROM tbl_pharmacies WHERE pharmacy_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $pharmacy_id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($res && $res->num_rows > 0) {
+                $pharm = $res->fetch_assoc();
+                if ((int)$pharm['status'] === 0 && !isset($_SESSION['impersonating_super_admin'])) {
+                    // Tenant is suspended! Clear admin session and redirect with notice
+                    unset($_SESSION['admin_login'], $_SESSION['admin_id'], $_SESSION['admin_email'], $_SESSION['admin_name'], $_SESSION['admin_pharmacy_id'], $_SESSION['admin_pharmacy_name']);
+                    $_SESSION['toast'] = [
+                        'type' => 'error',
+                        'title' => 'Pharmacy Suspended',
+                        'message' => 'Your pharmacy account has been suspended by platform administration. Please contact support.'
+                    ];
+                    header('Location: admin_login.php?suspended=1');
+                    exit();
+                }
+            }
+            $stmt->close();
+        }
+        return $pharmacy_id;
+    }
+}
+
 
 
