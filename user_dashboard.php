@@ -65,7 +65,7 @@ include('header.php');
                 <h2>Order History</h2>
                 
                 <?php
-                $order_stmt = $conn->prepare("SELECT * FROM tbl_order WHERE user_id = ? ORDER BY order_id DESC");
+                $order_stmt = $conn->prepare("SELECT o.*, p.name AS pharmacy_name FROM tbl_order o LEFT JOIN tbl_pharmacies p ON o.pharmacy_id = p.pharmacy_id WHERE o.user_id = ? ORDER BY o.order_id DESC");
                 if ($order_stmt) {
                     $order_stmt->bind_param("i", $uid);
                     $order_stmt->execute();
@@ -76,6 +76,7 @@ include('header.php');
                             <thead>
                                 <tr>
                                     <th>Tracking No</th>
+                                    <th>Pharmacy Store</th>
                                     <th>Date</th>
                                     <th>Total Price</th>
                                     <th>Status</th>
@@ -86,6 +87,11 @@ include('header.php');
                                 <?php while ($items = $order_run->fetch_assoc()): ?>
                                     <tr>
                                         <td style="font-family: monospace; font-weight: 500;"><?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td>
+                                            <span style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars(!empty($items['pharmacy_name']) ? $items['pharmacy_name'] : 'MedLife Central'); ?>
+                                            </span>
+                                        </td>
                                         <td><?php echo date("M d, Y", strtotime($items['created_at'])); ?></td>
                                         <td style="font-weight: 600; color: var(--text-main);">रु. <?php echo number_format($items['total'], 2); ?></td>
                                         <td>
