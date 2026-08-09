@@ -54,11 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnRegisterPharmacy']
         }
 
         // Insert Pharmacy record
-        $stmt_p = $conn->prepare("INSERT INTO tbl_pharmacies (name, slug, email, phone, address, plan, status) VALUES (?, ?, ?, ?, ?, ?, 1)");
+        $pan_number = '609823145';
+        $business_hours = 'Sun - Fri: 8:00 AM - 9:00 PM';
+        $stmt_p = $conn->prepare("INSERT INTO tbl_pharmacies (name, slug, email, phone, address, pan_number, business_hours, plan, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)");
         if ($stmt_p) {
-            $stmt_p->bind_param("ssssss", $name, $slug, $email, $phone, $address, $plan);
+            $stmt_p->bind_param("ssssssss", $name, $slug, $email, $phone, $address, $pan_number, $business_hours, $plan);
             if ($stmt_p->execute()) {
                 $pharmacy_id = $conn->insert_id;
+
+                // Seed starter category hierarchy for new tenant store
+                seed_default_pharmacy_categories($conn, $pharmacy_id);
 
                 // Insert Admin User record
                 $hashed_pass = md5($password);
