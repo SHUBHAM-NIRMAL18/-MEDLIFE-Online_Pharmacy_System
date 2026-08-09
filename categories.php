@@ -139,7 +139,7 @@ if ($cat_count_res) {
                         <i class="bx bx-git-repo-forked"></i>
                         <select id="parent_id" name="parent_id" class="form-select">
                             <option value="0" <?php echo $parent_id == 0 ? 'selected' : ''; ?>>Root Category (Top-Level Category)</option>
-                            <?php echo get_category_options($conn, 0, "", $parent_id); ?>
+                            <?php echo get_category_options($conn, 0, "", $parent_id, $pharmacy_id); ?>
                         </select>
                     </div>
                     <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
