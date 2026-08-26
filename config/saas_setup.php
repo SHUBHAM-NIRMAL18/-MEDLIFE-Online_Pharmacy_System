@@ -69,7 +69,73 @@ if (!function_exists('run_saas_migrations')) {
             }
         }
 
-        // 3. Helper to add pharmacy_id column to operational tables if missing
+        // 3. Create tbl_product_batches (Batch & Expiry Date Management)
+        $sql_batches = "CREATE TABLE IF NOT EXISTS tbl_product_batches (
+            batch_id INT AUTO_INCREMENT PRIMARY KEY,
+            pharmacy_id INT NOT NULL DEFAULT 1,
+            prdct_id INT NOT NULL,
+            batch_number VARCHAR(100) NOT NULL,
+            mfg_date DATE NOT NULL,
+            exp_date DATE NOT NULL,
+            purchase_cost DECIMAL(10, 2) DEFAULT 0.00,
+            mrp_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            quantity INT NOT NULL DEFAULT 0,
+            initial_quantity INT NOT NULL DEFAULT 0,
+            status TINYINT(1) DEFAULT 1 COMMENT '1 = Active, 0 = Depleted/Disposed',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pharmacy_batch (pharmacy_id, prdct_id),
+            INDEX idx_exp_date (exp_date),
+            INDEX idx_batch_num (batch_number)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        @$conn->query($sql_batches);
+
+        // 4. Create tbl_pos_sales (Point of Sale Counter Invoices)
+        $sql_pos = "CREATE TABLE IF NOT EXISTS tbl_pos_sales (
+            sale_id INT AUTO_INCREMENT PRIMARY KEY,
+            invoice_no VARCHAR(100) NOT NULL UNIQUE,
+            pharmacy_id INT NOT NULL DEFAULT 1,
+            customer_name VARCHAR(255) DEFAULT 'Walk-in Customer',
+            customer_phone VARCHAR(50) DEFAULT '',
+            customer_pan VARCHAR(50) DEFAULT '',
+            subtotal DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            discount_percent DECIMAL(5, 2) DEFAULT 0.00,
+            discount_amount DECIMAL(10, 2) DEFAULT 0.00,
+            tax_percent DECIMAL(5, 2) DEFAULT 0.00,
+            tax_amount DECIMAL(10, 2) DEFAULT 0.00,
+            grand_total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            payment_method VARCHAR(50) DEFAULT 'Cash',
+            tendered_amount DECIMAL(10, 2) DEFAULT 0.00,
+            change_amount DECIMAL(10, 2) DEFAULT 0.00,
+            cashier_name VARCHAR(100) DEFAULT 'Staff',
+            notes TEXT,
+            sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pharmacy_sale (pharmacy_id, sale_date)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        @$conn->query($sql_pos);
+
+        // 5. Create tbl_pos_items (POS Bill Item Details)
+        $sql_pos_items = "CREATE TABLE IF NOT EXISTS tbl_pos_items (
+            item_id INT AUTO_INCREMENT PRIMARY KEY,
+            sale_id INT NOT NULL,
+            prdct_id INT NOT NULL,
+            batch_id INT DEFAULT NULL,
+            batch_number VARCHAR(100) DEFAULT '',
+            prdct_name VARCHAR(255) NOT NULL,
+            quantity INT NOT NULL,
+            unit_price DECIMAL(10, 2) NOT NULL,
+            item_total DECIMAL(10, 2) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_sale_id (sale_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        @$conn->query($sql_pos_items);
+
+        // Ensure batch_number column exists in tbl_products
+        $chk_b = $conn->query("SHOW COLUMNS FROM tbl_products LIKE 'batch_number'");
+        if ($chk_b && $chk_b->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_products ADD COLUMN batch_number VARCHAR(100) DEFAULT 'BATCH-001' AFTER stock_quantity");
+        }
+
+        // Helper to add pharmacy_id column to operational tables if missing
         $tables_to_migrate = [
             'tbl_admin',
             'tbl_products',
@@ -77,7 +143,9 @@ if (!function_exists('run_saas_migrations')) {
             'tbl_order',
             'tbl_cart',
             'tbl_wishlist',
-            'tbl_user'
+            'tbl_user',
+            'tbl_product_batches',
+            'tbl_pos_sales'
         ];
 
         foreach ($tables_to_migrate as $table) {
@@ -87,6 +155,31 @@ if (!function_exists('run_saas_migrations')) {
                 $chk_col = $conn->query("SHOW COLUMNS FROM $table LIKE 'pharmacy_id'");
                 if ($chk_col && $chk_col->num_rows === 0) {
                     @$conn->query("ALTER TABLE $table ADD COLUMN pharmacy_id INT NOT NULL DEFAULT 1");
+                }
+            }
+        }
+
+        // Seed default batches for existing products if tbl_product_batches is empty
+        $chk_batches = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_product_batches");
+        if ($chk_batches) {
+            $batch_cnt = (int)$chk_batches->fetch_assoc()['cnt'];
+            if ($batch_cnt === 0) {
+                $prods = $conn->query("SELECT prdct_id, pharmacy_id, prdct_price, manf_date, exp_date, stock_quantity, batch_number FROM tbl_products");
+                if ($prods && $prods->num_rows > 0) {
+                    while ($p = $prods->fetch_assoc()) {
+                        $pid = (int)$p['prdct_id'];
+                        $phid = (int)($p['pharmacy_id'] ?? 1);
+                        if ($phid <= 0) $phid = 1;
+                        $bnum = !empty($p['batch_number']) ? $p['batch_number'] : ('BAT-' . str_pad($pid, 4, '0', STR_PAD_LEFT));
+                        $mfg = !empty($p['manf_date']) ? $p['manf_date'] : date('Y-m-d', strtotime('-6 months'));
+                        $exp = !empty($p['exp_date']) ? $p['exp_date'] : date('Y-m-d', strtotime('+18 months'));
+                        $price = (float)$p['prdct_price'];
+                        $cost = round($price * 0.70, 2);
+                        $qty = (int)($p['stock_quantity'] ?? 50);
+                        
+                        $conn->query("INSERT INTO tbl_product_batches (pharmacy_id, prdct_id, batch_number, mfg_date, exp_date, purchase_cost, mrp_price, quantity, initial_quantity, status)
+                                      VALUES ($phid, $pid, '$bnum', '$mfg', '$exp', $cost, $price, $qty, $qty, 1)");
+                    }
                 }
             }
         }
