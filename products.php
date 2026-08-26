@@ -114,15 +114,28 @@ if (isset($_POST['btnAdd'])) {
         $err['image'] = 'Please choose a product image';
     }
 
+    $batch_number = isset($_POST['batch_number']) && !empty(trim($_POST['batch_number'])) ? trim($_POST['batch_number']) : ('BAT-' . strtoupper(substr(uniqid(), -6)));
+
     // Insert into Database if no errors
     if (count($err) === 0) {
-        $stmt = $conn->prepare("INSERT INTO tbl_products (prdct_name, prdct_company, prdct_price, manf_date, exp_date, prdct_img, cat_id, stock_quantity, pharmacy_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO tbl_products (prdct_name, prdct_company, prdct_price, manf_date, exp_date, prdct_img, cat_id, stock_quantity, batch_number, pharmacy_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if ($stmt) {
-            $stmt->bind_param("ssdsssiii", $name, $company, $price, $manufactured, $expiry, $image_filename, $cat_id, $stock_quantity, $pharmacy_id);
+            $stmt->bind_param("ssdsssissi", $name, $company, $price, $manufactured, $expiry, $image_filename, $cat_id, $stock_quantity, $batch_number, $pharmacy_id);
             $stmt->execute();
             if ($stmt->affected_rows === 1 && $stmt->insert_id > 0) {
-                $success = 'Product added successfully!';
-                $name = $company = $price = $manufactured = $expiry = $cat_id = '';
+                $new_prod_id = $stmt->insert_id;
+                $success = 'Product & initial batch added successfully!';
+
+                // Insert into tbl_product_batches
+                $cost = round($price * 0.70, 2);
+                $stmt_b = $conn->prepare("INSERT INTO tbl_product_batches (pharmacy_id, prdct_id, batch_number, mfg_date, exp_date, purchase_cost, mrp_price, quantity, initial_quantity, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
+                if ($stmt_b) {
+                    $stmt_b->bind_param("iisssddii", $pharmacy_id, $new_prod_id, $batch_number, $manufactured, $expiry, $cost, $price, $stock_quantity, $stock_quantity);
+                    $stmt_b->execute();
+                    $stmt_b->close();
+                }
+
+                $name = $company = $price = $manufactured = $expiry = $cat_id = $batch_number = '';
                 $stock_quantity = 50;
             } else {
                 $err['general'] = 'Error saving product into database.';
@@ -253,8 +266,8 @@ if (isset($_POST['btnAdd'])) {
                     </div>
                 </div>
 
-                <!-- Row 2: Price & Stock Quantity -->
-                <div class="form-row">
+                <!-- Row 2: Price, Stock Quantity & Batch Number -->
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label for="price" class="form-label">
                             Price (रु.) <span class="required">*</span>
@@ -280,7 +293,7 @@ if (isset($_POST['btnAdd'])) {
 
                     <div class="form-group">
                         <label for="stock_quantity" class="form-label">
-                            Stock Quantity (Units) <span class="required">*</span>
+                            Stock Quantity <span class="required">*</span>
                         </label>
                         <div class="input-icon-wrapper">
                             <i class="bx bx-layer"></i>
@@ -292,6 +305,21 @@ if (isset($_POST['btnAdd'])) {
                                    placeholder="e.g. 50" 
                                    value="<?php echo isset($stock_quantity) ? (int)$stock_quantity : 50; ?>"
                                    required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="batch_number" class="form-label">
+                            Batch / Lot # <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-barcode"></i>
+                            <input type="text" 
+                                   id="batch_number" 
+                                   name="batch_number" 
+                                   class="form-control" 
+                                   placeholder="e.g. BAT-2026-01" 
+                                   value="<?php echo htmlspecialchars($batch_number ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                     </div>
                 </div>
