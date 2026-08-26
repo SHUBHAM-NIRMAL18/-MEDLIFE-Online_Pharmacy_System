@@ -41,8 +41,16 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
           <i class="bx bx-grid-alt"></i><span>Dashboard</span>
         </a>
 
-        <!-- Catalog -->
-        <div class="sidebar-section-title">Catalog</div>
+        <!-- Point of Sale (POS) -->
+        <div class="sidebar-section-title">Point of Sale (POS)</div>
+        <a href="pos.php" class="sidebar-link" style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.05) 100%); border-left: 3px solid #10b981; color: #10b981; font-weight: 700;">
+          <i class="bx bx-desktop" style="color: #10b981; font-size: 18px;"></i>
+          <span>POS Terminal</span>
+          <span style="margin-left: auto; background: #10b981; color: #ffffff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800;">LIVE</span>
+        </a>
+
+        <!-- Catalog & Inventory -->
+        <div class="sidebar-section-title">Catalog & Inventory</div>
 
         <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
           <i class="bx bx-category-alt"></i><span>Categories</span>
@@ -62,15 +70,20 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
           <a href="view_products.php" class="sidebar-sublink">Manage Products</a>
         </div>
 
+        <a href="batch_management.php" class="sidebar-link">
+          <i class="bx bx-barcode-reader"></i><span>Batch & Expiry Tracker</span>
+        </a>
+
         <!-- Operations -->
-        <div class="sidebar-section-title">Operations</div>
+        <div class="sidebar-section-title">Operations & Sales</div>
 
         <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
-          <i class="bx bx-cart"></i><span>Orders</span>
+          <i class="bx bx-cart"></i><span>Orders & Billing</span>
           <i class="bx bx-chevron-right submenu-arrow"></i>
         </div>
         <div class="sidebar-submenu">
-          <a href="admin_order.php" class="sidebar-sublink">View Orders</a>
+          <a href="pos_history.php" class="sidebar-sublink"><i class="bx bx-receipt"></i> POS Sales History</a>
+          <a href="admin_order.php" class="sidebar-sublink"><i class="bx bx-globe"></i> Online Orders</a>
         </div>
 
         <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
@@ -100,9 +113,12 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
           </span>
         <?php endif; ?>
       </div>
-      <div class="topbar-right" style="display: flex; align-items: center; gap: 14px;">
+      <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
+        <a href="pos.php" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+          <i class="bx bx-desktop"></i> Open POS Cashier
+        </a>
         <a href="index.php?pharmacy=<?php echo $active_admin_pharmacy_id; ?>" target="_blank" class="topbar-store-link" style="color: #059669; background: rgba(5, 150, 105, 0.12); border: 1px solid rgba(5, 150, 105, 0.25); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-          <i class="bx bx-link-external"></i> View Public Storefront
+          <i class="bx bx-link-external"></i> Storefront
         </a>
         <span class="admin-name"><span>Welcome,</span> <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>
         <a href="admin_logout.php" class="topbar-logout">
