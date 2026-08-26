@@ -34,6 +34,32 @@ if ($res) {
     $totalRevenue = !empty($row['rev']) ? (float)$row['rev'] : 0.00; 
 }
 
+// Fetch POS In-Store Sales Metrics
+$posTotalRevenue = 0.00;
+$posTotalSales = 0;
+$pos_res = $conn->query("SELECT COUNT(*) AS cnt, SUM(grand_total) AS rev FROM tbl_pos_sales WHERE pharmacy_id = $pharmacy_id");
+if ($pos_res && $pos_res->num_rows > 0) {
+    $pos_row = $pos_res->fetch_assoc();
+    $posTotalSales = (int)$pos_row['cnt'];
+    $posTotalRevenue = !empty($pos_row['rev']) ? (float)$pos_row['rev'] : 0.00;
+}
+$combinedGrossRevenue = $totalRevenue + $posTotalRevenue;
+
+// Fetch Expiring Batches Metrics (Critical <= 30 days & Expired)
+$expToday = date('Y-m-d');
+$exp30 = date('Y-m-d', strtotime('+30 days'));
+$criticalBatchCount = 0;
+$criticalBatches = [];
+$crit_cnt_res = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_product_batches WHERE pharmacy_id = $pharmacy_id AND quantity > 0 AND exp_date <= '$exp30'");
+if ($crit_cnt_res) { $criticalBatchCount = (int)$crit_cnt_res->fetch_assoc()['cnt']; }
+
+$crit_res = $conn->query("SELECT b.*, p.prdct_name, p.prdct_img FROM tbl_product_batches b JOIN tbl_products p ON b.prdct_id = p.prdct_id WHERE b.pharmacy_id = $pharmacy_id AND b.quantity > 0 AND b.exp_date <= '$exp30' ORDER BY b.exp_date ASC LIMIT 3");
+if ($crit_res && $crit_res->num_rows > 0) {
+    while ($cb = $crit_res->fetch_assoc()) {
+        $criticalBatches[] = $cb;
+    }
+}
+
 // Fetch Low Stock Count & Items
 $lowStockCount = 0;
 $lowStockItems = [];
@@ -95,32 +121,52 @@ if ($orderRes && $orderRes->num_rows > 0) {
     <div class="admin-page-header">
         <div>
             <h1><i class="bx bx-grid-alt" style="color: var(--admin-accent, #059669);"></i> Pharmacy Analytics Overview</h1>
-            <p>Welcome back, <strong><?php echo htmlspecialchars($_SESSION['admin_name'] ?? $_SESSION['name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></strong>. Here is your real-time store performance and inventory analysis.</p>
+            <p>Welcome back, <strong><?php echo htmlspecialchars($_SESSION['admin_name'] ?? $_SESSION['name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></strong>. Here is your real-time store performance, in-store POS, and inventory intelligence.</p>
+        </div>
+    </div>
+
+    <!-- POS Terminal Quick Launch Banner -->
+    <div style="background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%); border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span style="background: #10b981; color: #ffffff; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Walk-in Billing Counter</span>
+                <span style="font-size: 13px; color: #a7f3d0;">Keyboard Shortcuts &bull; 58/80mm Thermal Receipt</span>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 800; color: #ffffff; margin: 0;">Point-of-Sale (POS) Cashier Terminal</h2>
+            <p style="font-size: 13px; color: #d1fae5; margin-top: 4px;">Fast medicine search, batch lot tracking, barcode scan, discount & VAT computation, and instant thermal receipt printing.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="pos.php" style="background: #ffffff; color: #065f46; text-decoration: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class='bx bx-desktop' style="font-size: 20px;"></i> Open POS Cashier
+            </a>
+            <a href="pos_history.php" style="background: rgba(0,0,0,0.25); color: #ffffff; text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.2);">
+                <i class='bx bx-receipt'></i> Shift Register
+            </a>
         </div>
     </div>
 
     <!-- 4 Key Stat Summary Cards (Aligned Grid) -->
     <div class="stats-grid">
 
-        <!-- Revenue Card -->
+        <!-- Combined Revenue Card -->
         <div class="stat-card">
             <div class="stat-card-icon revenue">
                 <i class="bx bx-wallet"></i>
             </div>
             <div class="stat-card-info">
-                <h3>रु. <?php echo number_format($totalRevenue, 2); ?></h3>
-                <p>Total Revenue</p>
+                <h3>रु. <?php echo number_format($combinedGrossRevenue, 2); ?></h3>
+                <p>Gross Store Volume <span style="font-size: 11px; color: #059669; display: block;">Online: रु. <?php echo number_format($totalRevenue, 0); ?> | POS: रु. <?php echo number_format($posTotalRevenue, 0); ?></span></p>
             </div>
         </div>
 
-        <!-- Total Orders Card -->
+        <!-- Total Orders & POS Bills Card -->
         <div class="stat-card">
             <div class="stat-card-icon orders">
                 <i class="bx bx-receipt"></i>
             </div>
             <div class="stat-card-info">
-                <h3><?php echo $totalOrders; ?></h3>
-                <p><?php echo $pendingOrders; ?> Pending Orders</p>
+                <h3><?php echo ($totalOrders + $posTotalSales); ?> Total Sales</h3>
+                <p><?php echo $totalOrders; ?> Online &bull; <?php echo $posTotalSales; ?> POS Bills</p>
             </div>
         </div>
 
@@ -130,7 +176,7 @@ if ($orderRes && $orderRes->num_rows > 0) {
                 <i class="bx bx-package"></i>
             </div>
             <div class="stat-card-info">
-                <h3><?php echo $totalProducts; ?></h3>
+                <h3><?php echo $totalProducts; ?> Products</h3>
                 <p><?php echo $totalCategories; ?> Active Categories</p>
             </div>
         </div>
@@ -327,6 +373,40 @@ if ($orderRes && $orderRes->num_rows > 0) {
                     </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Near Expiry / Expired Medicines Intelligence Alert -->
+            <?php if ($criticalBatchCount > 0): ?>
+                <div class="admin-card" style="padding: 20px 22px; border-left: 4px solid #ef4444; background: #fffbfb;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #fee2e2;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #991b1b; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="bx bx-alarm-exclamation" style="color: #ef4444; font-size: 20px;"></i> Expiring Batches (≤30d)
+                        </h3>
+                        <a href="batch_management.php?status=critical" style="font-size: 11.5px; font-weight: 700; color: #dc2626; text-decoration: none;">
+                            View (<?php echo $criticalBatchCount; ?>) &rarr;
+                        </a>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <?php foreach ($criticalBatches as $cb): 
+                            $cb_days = (int)ceil((strtotime($cb['exp_date']) - strtotime(date('Y-m-d'))) / 86400);
+                        ?>
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #ffffff; border-radius: 8px; border: 1px solid #fecaca;">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.2;">
+                                        <?php echo htmlspecialchars($cb['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>
+                                    </div>
+                                    <div style="font-size: 11px; color: #64748b; font-family: monospace; margin-top: 2px;">
+                                        Lot: <?php echo htmlspecialchars($cb['batch_number']); ?> &bull; <?php echo (int)$cb['quantity']; ?> left
+                                    </div>
+                                </div>
+                                <span style="font-size: 11px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">
+                                    <?php echo $cb_days < 0 ? 'Expired' : $cb_days . 'd left'; ?>
+                                </span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Low Stock / Reorder Warning Widget -->
             <?php if ($lowStockCount > 0): ?>
