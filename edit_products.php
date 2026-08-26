@@ -66,16 +66,46 @@ if (isset($_POST['btnUpdate'])) {
         }
     }
 
+    $batch_number = isset($_POST['batch_number']) && !empty(trim($_POST['batch_number'])) ? trim($_POST['batch_number']) : ('BAT-' . str_pad($id, 4, '0', STR_PAD_LEFT));
+
     if (count($err) === 0) {
-        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ?, stock_quantity = ? WHERE prdct_id = ? AND pharmacy_id = ?");
+        $stmt = $conn->prepare("UPDATE tbl_products SET prdct_name = ?, prdct_company = ?, prdct_price = ?, manf_date = ?, exp_date = ?, cat_id = ?, prdct_img = ?, stock_quantity = ?, batch_number = ? WHERE prdct_id = ? AND pharmacy_id = ?");
         if ($stmt) {
-            $stmt->bind_param("ssdssisiii", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $stock_quantity, $id, $pharmacy_id);
+            $stmt->bind_param("ssdssisissi", $prdct_name, $prdct_company, $prdct_price, $manf_date, $exp_date, $cat_id, $image_filename, $stock_quantity, $batch_number, $id, $pharmacy_id);
             $stmt->execute();
             $stmt->close();
+
+            // Also ensure batch exists in tbl_product_batches
+            $chk_b = $conn->prepare("SELECT batch_id FROM tbl_product_batches WHERE prdct_id = ? AND pharmacy_id = ? LIMIT 1");
+            if ($chk_b) {
+                $chk_b->bind_param("ii", $id, $pharmacy_id);
+                $chk_b->execute();
+                $b_res = $chk_b->get_result();
+                if ($b_res && $b_res->num_rows > 0) {
+                    $b_row = $b_res->fetch_assoc();
+                    $cost = round($prdct_price * 0.70, 2);
+                    $u_b = $conn->prepare("UPDATE tbl_product_batches SET batch_number = ?, mfg_date = ?, exp_date = ?, mrp_price = ?, purchase_cost = ? WHERE batch_id = ?");
+                    if ($u_b) {
+                        $u_b->bind_param("sssddi", $batch_number, $manf_date, $exp_date, $prdct_price, $cost, $b_row['batch_id']);
+                        $u_b->execute();
+                        $u_b->close();
+                    }
+                } else {
+                    $cost = round($prdct_price * 0.70, 2);
+                    $i_b = $conn->prepare("INSERT INTO tbl_product_batches (pharmacy_id, prdct_id, batch_number, mfg_date, exp_date, purchase_cost, mrp_price, quantity, initial_quantity, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
+                    if ($i_b) {
+                        $i_b->bind_param("iisssddii", $pharmacy_id, $id, $batch_number, $manf_date, $exp_date, $cost, $prdct_price, $stock_quantity, $stock_quantity);
+                        $i_b->execute();
+                        $i_b->close();
+                    }
+                }
+                $chk_b->close();
+            }
+
             $_SESSION['toast'] = [
                 'type' => 'success',
                 'title' => 'Product Updated',
-                'message' => 'Product specifications updated successfully!'
+                'message' => 'Product specifications and batch data updated successfully!'
             ];
             header("Location: view_products.php?updated=1");
             exit();
@@ -243,8 +273,8 @@ include_once 'dashboard.php';
                     </div>
                 </div>
 
-                <!-- Row 2: Price & Stock Quantity -->
-                <div class="form-row">
+                <!-- Row 2: Price, Stock Quantity & Batch Number -->
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label for="prdct_price" class="form-label">
                             Price (रु.) <span class="required">*</span>
@@ -269,7 +299,7 @@ include_once 'dashboard.php';
 
                     <div class="form-group">
                         <label for="stock_quantity" class="form-label">
-                            Stock Quantity (Units) <span class="required">*</span>
+                            Stock Quantity <span class="required">*</span>
                         </label>
                         <div class="input-icon-wrapper">
                             <i class="bx bx-layer"></i>
@@ -279,6 +309,22 @@ include_once 'dashboard.php';
                                    name="stock_quantity" 
                                    class="form-control" 
                                    value="<?php echo isset($product['stock_quantity']) ? (int)$product['stock_quantity'] : 50; ?>"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="batch_number" class="form-label">
+                            Batch / Lot # <span class="required">*</span>
+                        </label>
+                        <div class="input-icon-wrapper">
+                            <i class="bx bx-barcode"></i>
+                            <input type="text" 
+                                   id="batch_number" 
+                                   name="batch_number" 
+                                   class="form-control" 
+                                   placeholder="e.g. BAT-2026-01" 
+                                   value="<?php echo htmlspecialchars($product['batch_number'] ?? ('BAT-' . str_pad($id, 4, '0', STR_PAD_LEFT)), ENT_QUOTES, 'UTF-8'); ?>"
                                    required>
                         </div>
                     </div>
