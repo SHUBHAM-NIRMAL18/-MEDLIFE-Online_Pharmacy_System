@@ -194,17 +194,23 @@ $end_item = min($offset + $limit, $total_records);
                                     </td>
                                 <?php else: ?>
                                     <td>
-                                        <?php if ((int)$acc['status'] === 1): ?>
-                                            <span class="role-badge admin">
-                                                <i class="bx bx-shield-alt-2"></i> Administrator
+                                        <?php 
+                                        $s_role = !empty($acc['role']) ? strtolower($acc['role']) : ($acc['status'] == 2 ? 'pharmacist' : 'admin');
+                                        if ($s_role === 'pharmacist'): ?>
+                                            <span class="role-badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">
+                                                <i class="bx bx-plus-medical"></i> Pharmacist
                                             </span>
-                                        <?php elseif ((int)$acc['status'] === 2): ?>
-                                            <span class="role-badge manager">
-                                                <i class="bx bx-briefcase-alt-2"></i> Store Manager
+                                        <?php elseif ($s_role === 'cashier'): ?>
+                                            <span class="role-badge" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">
+                                                <i class="bx bx-purchase-tag-alt"></i> POS Cashier
+                                            </span>
+                                        <?php elseif ($s_role === 'driver'): ?>
+                                            <span class="role-badge" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">
+                                                <i class="bx bx-cycling"></i> Delivery Driver
                                             </span>
                                         <?php else: ?>
-                                            <span class="role-badge inactive">
-                                                <i class="bx bx-block"></i> Inactive Staff
+                                            <span class="role-badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">
+                                                <i class="bx bx-shield-alt-2"></i> Store Admin
                                             </span>
                                         <?php endif; ?>
                                     </td>
