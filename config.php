@@ -232,5 +232,40 @@ if (!function_exists('require_admin_tenant')) {
     }
 }
 
+// Helper to get active admin staff role (admin, pharmacist, cashier, driver)
+if (!function_exists('get_current_admin_role')) {
+    function get_current_admin_role() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        return isset($_SESSION['admin_role']) && is_string($_SESSION['admin_role']) ? strtolower(trim($_SESSION['admin_role'])) : 'admin';
+    }
+}
 
+// Role-Based Access Control Guard
+if (!function_exists('require_admin_role')) {
+    function require_admin_role($allowed_roles = ['admin']) {
+        require_admin_tenant();
+        $current_role = get_current_admin_role();
+        if (is_string($allowed_roles)) {
+            $allowed_roles = [$allowed_roles];
+        }
+        $allowed_roles = array_map('strtolower', $allowed_roles);
+        
+        // Super admin impersonation always allowed
+        if (isset($_SESSION['impersonating_super_admin']) && $_SESSION['impersonating_super_admin'] === true) {
+            return true;
+        }
 
+        if (!in_array($current_role, $allowed_roles) && $current_role !== 'admin') {
+            $_SESSION['toast'] = [
+                'type' => 'error',
+                'title' => 'Permission Denied',
+                'message' => 'Your staff role (' . ucfirst($current_role) . ') does not have permission to access this module.'
+            ];
+            header('Location: admin_home.php');
+            exit();
+        }
+        return true;
+    }
+}
