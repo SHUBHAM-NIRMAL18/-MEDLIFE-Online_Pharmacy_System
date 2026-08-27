@@ -16,7 +16,10 @@ $order_items = [];
 
 if (!empty($tracking_no)) {
     $conn = get_db_connection();
-    $stmt = $conn->prepare("SELECT * FROM tbl_order WHERE tracking_order = ?");
+    $stmt = $conn->prepare("SELECT o.*, d.name AS driver_name, d.phone AS driver_phone, d.vehicle_type, d.vehicle_number 
+                            FROM tbl_order o 
+                            LEFT JOIN tbl_delivery_drivers d ON o.driver_id = d.driver_id 
+                            WHERE o.tracking_order = ?");
     if ($stmt) {
         $stmt->bind_param("s", $tracking_no);
         $stmt->execute();
@@ -92,16 +95,24 @@ include('header.php');
         
         <?php 
         $status = (int)$order_data['status'];
-        // Step calculations
-        $step1_class = "completed"; // Placed
-        $step2_class = $status >= 0 ? ($status == 0 ? "active" : "completed") : "pending"; // Processing
-        $step3_class = $status == 1 ? "completed" : "pending"; // Out for delivery
-        $step4_class = $status == 1 ? "completed" : "pending"; // Delivered
         
-        $progress_width = "25%";
-        $vert_progress = "33%";
-        if ($status == 1) {
+        // 5-Step timeline state
+        $step1_class = "completed"; // Placed
+        $step2_class = in_array($status, [3, 4, 1]) ? "completed" : ($status == 0 ? "active" : "pending"); // Processing
+        $step3_class = in_array($status, [4, 1]) ? "completed" : ($status == 3 ? "active" : "pending"); // Packed
+        $step4_class = ($status == 1) ? "completed" : ($status == 4 ? "active" : "pending"); // Out for delivery
+        $step5_class = ($status == 1) ? "completed" : "pending"; // Delivered
+        
+        $progress_width = "15%";
+        $vert_progress = "20%";
+        if ($status == 3) {
+            $progress_width = "50%";
+            $vert_progress = "50%";
+        } elseif ($status == 4) {
             $progress_width = "75%";
+            $vert_progress = "75%";
+        } elseif ($status == 1) {
+            $progress_width = "100%";
             $vert_progress = "100%";
         } elseif ($status == 2) {
             $progress_width = "0%";
@@ -124,7 +135,11 @@ include('header.php');
                         </a>
                     <?php endif; ?>
                     <?php if ($status == 0): ?>
-                        <span class="status-badge process" style="font-size: 13px; padding: 6px 14px;"><i class="bx bx-loader-circle bx-spin"></i> Under Processing</span>
+                        <span class="status-badge process" style="font-size: 13px; padding: 6px 14px;"><i class="bx bx-loader-circle bx-spin"></i> Processing & Verification</span>
+                    <?php elseif ($status == 3): ?>
+                        <span class="status-badge process" style="font-size: 13px; padding: 6px 14px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;"><i class="bx bx-package"></i> Packed & Ready for Courier</span>
+                    <?php elseif ($status == 4): ?>
+                        <span class="status-badge process" style="font-size: 13px; padding: 6px 14px; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;"><i class="bx bx-cycling bx-flashing"></i> Courier on the Way</span>
                     <?php elseif ($status == 1): ?>
                         <span class="status-badge completed" style="font-size: 13px; padding: 6px 14px;"><i class="bx bx-check-circle"></i> Successfully Delivered</span>
                     <?php elseif ($status == 2): ?>
@@ -132,6 +147,29 @@ include('header.php');
                     <?php endif; ?>
                 </div>
             </div>
+
+            <!-- Live Courier Dispatch Banner -->
+            <?php if ($status == 4 && !empty($order_data['driver_name'])): ?>
+                <div style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border: 1px solid #c7d2fe; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #4f46e5; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">
+                            <i class='bx bx-cycling'></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; font-weight: 700; color: #4338ca; text-transform: uppercase;">Your Delivery Courier</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #1e1b4b;"><?php echo htmlspecialchars($order_data['driver_name']); ?></div>
+                            <div style="font-size: 13px; color: #475569;">
+                                Vehicle: <strong><?php echo htmlspecialchars($order_data['vehicle_type']); ?></strong> (<?php echo htmlspecialchars($order_data['vehicle_number'] ?? ''); ?>)
+                            </div>
+                        </div>
+                    </div>
+                    <?php if (!empty($order_data['driver_phone'])): ?>
+                        <a href="tel:<?php echo htmlspecialchars($order_data['driver_phone']); ?>" class="btn btn-primary" style="background: #4f46e5; border-color: #4f46e5; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px;">
+                            <i class='bx bx-phone-call'></i> Call Rider (<?php echo htmlspecialchars($order_data['driver_phone']); ?>)
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
             <?php if ($status == 2): ?>
                 <div class="cancelled-alert-banner">
@@ -149,34 +187,43 @@ include('header.php');
                             <i class="bx bx-file-blank"></i>
                         </div>
                         <div class="step-title">Order Placed</div>
-                        <div class="step-desc">Invoice Received</div>
+                        <div class="step-desc">Invoice Generated</div>
                     </div>
 
                     <!-- Step 2 -->
                     <div class="step-item <?php echo $step2_class; ?>">
                         <div class="step-icon">
-                            <i class="bx bx-package"></i>
+                            <i class="bx bx-check-shield"></i>
                         </div>
-                        <div class="step-title">Processing</div>
-                        <div class="step-desc">Pharmacist Verification</div>
+                        <div class="step-title">Verification</div>
+                        <div class="step-desc">Pharmacist Check</div>
                     </div>
 
                     <!-- Step 3 -->
                     <div class="step-item <?php echo $step3_class; ?>">
                         <div class="step-icon">
-                            <i class="bx bx-cycling"></i>
+                            <i class="bx bx-package"></i>
                         </div>
-                        <div class="step-title">Out for Delivery</div>
-                        <div class="step-desc">With Express Courier</div>
+                        <div class="step-title">Packed</div>
+                        <div class="step-desc">Ready for Courier</div>
                     </div>
 
                     <!-- Step 4 -->
                     <div class="step-item <?php echo $step4_class; ?>">
                         <div class="step-icon">
+                            <i class="bx bx-cycling"></i>
+                        </div>
+                        <div class="step-title">Out for Delivery</div>
+                        <div class="step-desc"><?php echo !empty($order_data['driver_name']) ? htmlspecialchars($order_data['driver_name']) : 'Express Courier'; ?></div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="step-item <?php echo $step5_class; ?>">
+                        <div class="step-icon">
                             <i class="bx bx-check-double"></i>
                         </div>
                         <div class="step-title">Delivered</div>
-                        <div class="step-desc">Handed Over</div>
+                        <div class="step-desc"><?php echo !empty($order_data['delivered_at']) ? date('M d, h:i A', strtotime($order_data['delivered_at'])) : 'Completed'; ?></div>
                     </div>
                 </div>
             <?php endif; ?>
