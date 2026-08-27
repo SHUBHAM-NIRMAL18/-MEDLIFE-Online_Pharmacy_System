@@ -36,14 +36,23 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     exit();
 }
 
-$orders = $conn->query("SELECT * FROM tbl_order WHERE pharmacy_id = $pharmacy_id ORDER BY order_id DESC");
+$orders = $conn->query("SELECT o.*, d.name AS driver_name, d.phone AS driver_phone, d.vehicle_type, d.vehicle_number 
+                       FROM tbl_order o 
+                       LEFT JOIN tbl_delivery_drivers d ON o.driver_id = d.driver_id 
+                       WHERE o.pharmacy_id = $pharmacy_id 
+                       ORDER BY o.order_id DESC");
 ?>
 
   <div class="admin-page-wrapper">
 
-    <div class="admin-page-header">
-      <h1>Order Management</h1>
-      <p>View and manage all customer pharmacy orders.</p>
+    <div class="admin-page-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <h1>Order Dispatch & Delivery Management</h1>
+        <p>Monitor online orders, assign fleet delivery couriers, and track live status.</p>
+      </div>
+      <a href="driver_management.php" class="admin-btn primary" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+        <i class="bx bx-cycling"></i> Manage Delivery Fleet
+      </a>
     </div>
 
     <div class="admin-card">
@@ -57,7 +66,7 @@ $orders = $conn->query("SELECT * FROM tbl_order WHERE pharmacy_id = $pharmacy_id
             <th>Order ID</th>
             <th>Tracking No</th>
             <th>Customer</th>
-            <th>Phone</th>
+            <th>Delivery Courier</th>
             <th>Date</th>
             <th>Total</th>
             <th>Status</th>
@@ -69,19 +78,35 @@ $orders = $conn->query("SELECT * FROM tbl_order WHERE pharmacy_id = $pharmacy_id
             <?php while ($item = $orders->fetch_assoc()): ?>
               <tr>
                 <td>#<?php echo $item['order_id']; ?></td>
-                <td style="font-family: monospace; font-weight: 500;"><?php echo htmlspecialchars($item['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
-                <td><?php echo htmlspecialchars($item['user_name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                <td><?php echo htmlspecialchars($item['phone'], ENT_QUOTES, 'UTF-8'); ?></td>
+                <td style="font-family: monospace; font-weight: 600; color: #0f172a;"><?php echo htmlspecialchars($item['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
+                <td>
+                  <div style="font-weight: 600; color: #0f172a;"><?php echo htmlspecialchars($item['user_name'], ENT_QUOTES, 'UTF-8'); ?></div>
+                  <small style="color: #64748b;"><?php echo htmlspecialchars($item['phone'], ENT_QUOTES, 'UTF-8'); ?></small>
+                </td>
+                <td>
+                  <?php if (!empty($item['driver_name'])): ?>
+                    <div style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 4px;">
+                      <i class='bx bx-cycling' style="color: #059669;"></i> <?php echo htmlspecialchars($item['driver_name']); ?>
+                    </div>
+                    <small style="color: #64748b; font-size: 11px;"><?php echo htmlspecialchars($item['vehicle_number'] ?? ''); ?></small>
+                  <?php else: ?>
+                    <span style="color: #94a3b8; font-size: 12px;">Unassigned</span>
+                  <?php endif; ?>
+                </td>
                 <td><?php echo date("M d, Y", strtotime($item['created_at'])); ?></td>
-                <td style="font-weight: 600;">रु. <?php echo number_format($item['total'], 2); ?></td>
+                <td style="font-weight: 700; color: #059669;">रु. <?php echo number_format($item['total'], 2); ?></td>
                 <td>
                   <?php
                   if ($item['status'] == 0) {
-                    echo '<span class="admin-badge process">Under Process</span>';
+                    echo '<span class="admin-badge process" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3);"><i class="bx bx-loader-alt bx-spin"></i> Processing</span>';
+                  } elseif ($item['status'] == 3) {
+                    echo '<span class="admin-badge" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3);"><i class="bx bx-package"></i> Ready for Pickup</span>';
+                  } elseif ($item['status'] == 4) {
+                    echo '<span class="admin-badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);"><i class="bx bx-cycling"></i> Out for Delivery</span>';
                   } elseif ($item['status'] == 1) {
-                    echo '<span class="admin-badge completed">Completed</span>';
+                    echo '<span class="admin-badge completed"><i class="bx bx-check-circle"></i> Delivered</span>';
                   } elseif ($item['status'] == 2) {
-                    echo '<span class="admin-badge cancelled">Cancelled</span>';
+                    echo '<span class="admin-badge cancelled"><i class="bx bx-x-circle"></i> Cancelled</span>';
                   }
                   ?>
                 </td>
