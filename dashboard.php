@@ -2,6 +2,7 @@
 require_once 'config.php';
 $active_admin_pharmacy_id = require_admin_tenant();
 $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
+$current_staff_role = get_current_admin_role();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,6 +50,7 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
           <span style="margin-left: auto; background: #10b981; color: #ffffff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800;">LIVE</span>
         </a>
 
+        <?php if ($current_staff_role !== 'cashier'): ?>
         <!-- Catalog & Inventory -->
         <div class="sidebar-section-title">Catalog & Inventory</div>
 
@@ -73,6 +75,12 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
         <a href="batch_management.php" class="sidebar-link">
           <i class="bx bx-barcode-reader"></i><span>Batch & Expiry Tracker</span>
         </a>
+        <?php else: ?>
+        <div class="sidebar-section-title">Product Catalog</div>
+        <a href="view_products.php" class="sidebar-link">
+          <i class="bx bxs-component"></i><span>View Products</span>
+        </a>
+        <?php endif; ?>
 
         <!-- Operations -->
         <div class="sidebar-section-title">Operations & Sales</div>
@@ -83,18 +91,23 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
         </div>
         <div class="sidebar-submenu">
           <a href="pos_history.php" class="sidebar-sublink"><i class="bx bx-receipt"></i> POS Sales History</a>
-          <a href="admin_order.php" class="sidebar-sublink"><i class="bx bx-globe"></i> Online Orders</a>
+          <?php if ($current_staff_role !== 'cashier'): ?>
+            <a href="admin_order.php" class="sidebar-sublink"><i class="bx bx-globe"></i> Online Orders</a>
+            <a href="driver_management.php" class="sidebar-sublink"><i class="bx bx-cycling"></i> Delivery Fleet (Riders)</a>
+          <?php endif; ?>
         </div>
 
+        <?php if ($current_staff_role === 'admin'): ?>
         <div class="sidebar-link sidebar-submenu-toggle" onclick="toggleSubmenu(this)">
           <i class="bx bx-user"></i><span>Accounts & Store</span>
           <i class="bx bx-chevron-right submenu-arrow"></i>
         </div>
         <div class="sidebar-submenu">
           <a href="pharmacy_settings.php" class="sidebar-sublink"><i class="bx bx-cog"></i> Store Settings</a>
-          <a href="admin_register1.php" class="sidebar-sublink">Add Admin / Manager</a>
+          <a href="admin_register1.php" class="sidebar-sublink">Add Staff User</a>
           <a href="view_user.php" class="sidebar-sublink">Manage Accounts</a>
         </div>
+        <?php endif; ?>
 
       </div>
     </nav>
@@ -112,6 +125,22 @@ $active_pharmacy_info = get_pharmacy_details($active_admin_pharmacy_id);
             <span style="font-size: 10px; background: #10b981; color: #fff; padding: 1px 6px; border-radius: 10px; font-weight: 700; text-transform: uppercase;"><?php echo htmlspecialchars($active_pharmacy_info['plan'] ?? 'Pro'); ?></span>
           </span>
         <?php endif; ?>
+
+        <!-- Role Badge -->
+        <?php 
+          $role_badge_style = 'background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);';
+          $role_icon = 'bx-shield-quarter';
+          if ($current_staff_role === 'pharmacist') {
+              $role_badge_style = 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);';
+              $role_icon = 'bx-plus-medical';
+          } elseif ($current_staff_role === 'cashier') {
+              $role_badge_style = 'background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3);';
+              $role_icon = 'bx-purchase-tag-alt';
+          }
+        ?>
+        <span style="<?php echo $role_badge_style; ?> font-size: 12px; padding: 3px 10px; border-radius: 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: capitalize;">
+          <i class='bx <?php echo $role_icon; ?>'></i> <?php echo htmlspecialchars($current_staff_role); ?>
+        </span>
       </div>
       <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
         <a href="pos.php" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
