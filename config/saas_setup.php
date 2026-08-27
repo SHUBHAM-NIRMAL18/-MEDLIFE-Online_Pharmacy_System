@@ -129,6 +129,47 @@ if (!function_exists('run_saas_migrations')) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         @$conn->query($sql_pos_items);
 
+        // 6. Create tbl_delivery_drivers (Delivery Fleet Management)
+        $sql_drivers = "CREATE TABLE IF NOT EXISTS tbl_delivery_drivers (
+            driver_id INT AUTO_INCREMENT PRIMARY KEY,
+            pharmacy_id INT NOT NULL DEFAULT 1,
+            name VARCHAR(255) NOT NULL,
+            phone VARCHAR(50) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            vehicle_type VARCHAR(50) DEFAULT 'Motorcycle',
+            vehicle_number VARCHAR(50) DEFAULT '',
+            license_number VARCHAR(50) DEFAULT '',
+            status TINYINT(1) DEFAULT 1 COMMENT '1 = Active/Available, 2 = On Delivery, 0 = Inactive',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pharmacy_driver (pharmacy_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        @$conn->query($sql_drivers);
+
+        // Ensure role column exists in tbl_admin (RBAC)
+        $chk_role = $conn->query("SHOW COLUMNS FROM tbl_admin LIKE 'role'");
+        if ($chk_role && $chk_role->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_admin ADD COLUMN role VARCHAR(50) DEFAULT 'admin' AFTER status");
+        }
+
+        // Ensure driver_id and delivery tracking columns exist in tbl_order
+        $chk_drv = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'driver_id'");
+        if ($chk_drv && $chk_drv->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN driver_id INT DEFAULT NULL AFTER pharmacy_id");
+        }
+        $chk_dn = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'delivery_notes'");
+        if ($chk_dn && $chk_dn->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN delivery_notes TEXT DEFAULT NULL AFTER driver_id");
+        }
+        $chk_da = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'delivered_at'");
+        if ($chk_da && $chk_da->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN delivered_at DATETIME DEFAULT NULL AFTER delivery_notes");
+        }
+        $chk_ed = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'estimated_delivery'");
+        if ($chk_ed && $chk_ed->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN estimated_delivery VARCHAR(100) DEFAULT NULL AFTER delivered_at");
+        }
+
         // Ensure batch_number column exists in tbl_products
         $chk_b = $conn->query("SHOW COLUMNS FROM tbl_products LIKE 'batch_number'");
         if ($chk_b && $chk_b->num_rows === 0) {
@@ -145,7 +186,8 @@ if (!function_exists('run_saas_migrations')) {
             'tbl_wishlist',
             'tbl_user',
             'tbl_product_batches',
-            'tbl_pos_sales'
+            'tbl_pos_sales',
+            'tbl_delivery_drivers'
         ];
 
         foreach ($tables_to_migrate as $table) {
@@ -156,6 +198,17 @@ if (!function_exists('run_saas_migrations')) {
                 if ($chk_col && $chk_col->num_rows === 0) {
                     @$conn->query("ALTER TABLE $table ADD COLUMN pharmacy_id INT NOT NULL DEFAULT 1");
                 }
+            }
+        }
+
+        // Seed default delivery driver if tbl_delivery_drivers is empty
+        $chk_drivers = $conn->query("SELECT COUNT(*) AS cnt FROM tbl_delivery_drivers");
+        if ($chk_drivers) {
+            $driver_cnt = (int)$chk_drivers->fetch_assoc()['cnt'];
+            if ($driver_cnt === 0) {
+                $driver_pass = md5('driver123');
+                $conn->query("INSERT INTO tbl_delivery_drivers (pharmacy_id, name, phone, email, password, vehicle_type, vehicle_number, license_number, status) 
+                              VALUES (1, 'Kiran Shrestha (Fast Courier)', '9841234567', 'driver@medlife.com', '$driver_pass', 'Motorcycle', 'BA 2 PA 9876', '01-06-87941', 1)");
             }
         }
 
