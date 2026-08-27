@@ -50,23 +50,30 @@ if (isset($_POST['btnadRegister'])) {
         $err['conpassword'] = 'Passwords do not match';
     }
 
-    if (isset($_POST['status']) && $_POST['status'] !== '') {
-        $status = (int)$_POST['status'];
-    } else {
-        $err['status'] = 'Please select account role / status';
-    }
+    $role = isset($_POST['role']) && !empty(trim($_POST['role'])) ? strtolower(trim($_POST['role'])) : 'admin';
+    $status = 1;
 
     // Insert into Database if no errors
     if (count($err) === 0) {
         $pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
         $hashed_password = md5($raw_password);
-        $stmt = $conn->prepare("INSERT INTO tbl_admin (name, email, password, status, pharmacy_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO tbl_admin (name, email, password, status, role, pharmacy_id) VALUES (?, ?, ?, ?, ?, ?)");
         if ($stmt) {
-            $stmt->bind_param("sssii", $name, $email, $hashed_password, $status, $pharmacy_id);
+            $stmt->bind_param("sssssi", $name, $email, $hashed_password, $status, $role, $pharmacy_id);
             $stmt->execute();
             if ($stmt->affected_rows === 1 && $stmt->insert_id > 0) {
-                $message = "Account created successfully!";
-                $name = $email = $status = '';
+                // If role is driver, also add to tbl_delivery_drivers for fleet tracking
+                if ($role === 'driver') {
+                    $d_phone = '980' . rand(1000000, 9999999);
+                    $stmt_drv = $conn->prepare("INSERT INTO tbl_delivery_drivers (pharmacy_id, name, phone, email, password, vehicle_type, status) VALUES (?, ?, ?, ?, ?, 'Motorcycle', 1)");
+                    if ($stmt_drv) {
+                        $stmt_drv->bind_param("issss", $pharmacy_id, $name, $d_phone, $email, $hashed_password);
+                        $stmt_drv->execute();
+                        $stmt_drv->close();
+                    }
+                }
+                $message = "Staff account (" . ucfirst($role) . ") created successfully!";
+                $name = $email = '';
             } else {
                 $err['general'] = "Failed to create user account.";
             }
@@ -225,44 +232,47 @@ if ($admin_cnt_res) {
                 <!-- Account Role / Status Selector -->
                 <div class="form-group">
                     <label class="form-label">
-                        Account Role & Privilege Level <span class="required">*</span>
+                        Account Staff Role & Privilege Level <span class="required">*</span>
                     </label>
-                    <div class="role-radio-group">
-                        <label class="role-radio-card">
-                            <input type="radio" name="status" value="1" <?php echo $status == 1 || $status === '' ? 'checked' : ''; ?>>
+                    <div class="role-radio-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <label class="role-radio-card" style="padding: 12px; display: flex; gap: 10px; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="role" value="admin" <?php echo empty($role) || $role === 'admin' ? 'checked' : ''; ?>>
                             <div class="role-radio-info">
-                                <div>Admin</div>
-                                <small>Full System Access</small>
+                                <div style="font-weight: 700; color: #0f172a;"><i class='bx bx-shield-quarter' style="color: #6366f1;"></i> Store Admin</div>
+                                <small style="color: #64748b; font-size: 11px;">Full System & Financial Access</small>
                             </div>
                         </label>
 
-                        <label class="role-radio-card">
-                            <input type="radio" name="status" value="2" <?php echo $status == 2 ? 'checked' : ''; ?>>
+                        <label class="role-radio-card" style="padding: 12px; display: flex; gap: 10px; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="role" value="pharmacist" <?php echo $role === 'pharmacist' ? 'checked' : ''; ?>>
                             <div class="role-radio-info">
-                                <div>Manager</div>
-                                <small>Store & Catalog Access</small>
+                                <div style="font-weight: 700; color: #0f172a;"><i class='bx bx-plus-medical' style="color: #10b981;"></i> Pharmacist</div>
+                                <small style="color: #64748b; font-size: 11px;">Catalog, Batches & Orders</small>
                             </div>
                         </label>
 
-                        <label class="role-radio-card">
-                            <input type="radio" name="status" value="0" <?php echo $status === 0 ? 'checked' : ''; ?>>
+                        <label class="role-radio-card" style="padding: 12px; display: flex; gap: 10px; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="role" value="cashier" <?php echo $role === 'cashier' ? 'checked' : ''; ?>>
                             <div class="role-radio-info">
-                                <div>Inactive</div>
-                                <small>Access Disabled</small>
+                                <div style="font-weight: 700; color: #0f172a;"><i class='bx bx-purchase-tag-alt' style="color: #f59e0b;"></i> POS Cashier</div>
+                                <small style="color: #64748b; font-size: 11px;">Counter Billing & POS Receipts</small>
+                            </div>
+                        </label>
+
+                        <label class="role-radio-card" style="padding: 12px; display: flex; gap: 10px; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="role" value="driver" <?php echo $role === 'driver' ? 'checked' : ''; ?>>
+                            <div class="role-radio-info">
+                                <div style="font-weight: 700; color: #0f172a;"><i class='bx bx-cycling' style="color: #3b82f6;"></i> Delivery Driver</div>
+                                <small style="color: #64748b; font-size: 11px;">Rider Mobile Delivery Portal</small>
                             </div>
                         </label>
                     </div>
-                    <?php if (isset($err['status'])): ?>
-                        <div class="field-error">
-                            <i class="bx bx-error"></i> <?php echo htmlspecialchars($err['status'], ENT_QUOTES, 'UTF-8'); ?>
-                        </div>
-                    <?php endif; ?>
                 </div>
 
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="submit" name="btnadRegister" class="btn-submit">
-                        <i class="bx bx-user-check"></i> Create Account
+                        <i class="bx bx-user-check"></i> Create Staff Account
                     </button>
                     <a href="view_user.php" class="btn-secondary">
                         Cancel
@@ -274,33 +284,39 @@ if ($admin_cnt_res) {
 
         <!-- Right Column: Sidebar Guidelines & Quick Stats -->
         <div class="account-card account-tips-card">
-            <h4><i class="bx bx-shield-quarter"></i> Role Privileges</h4>
+            <h4><i class="bx bx-shield-quarter"></i> Staff Roles & Permissions</h4>
             
             <ul class="tips-list">
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>Administrator (Status 1):</strong> Complete administrative control over catalog, pricing, orders, and system accounts.
+                        <strong>Store Admin:</strong> Full operational control over inventory, store settings, pricing, staff accounts, and financial reports.
                     </div>
                 </li>
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>Store Manager (Status 2):</strong> Operational privileges for inventory management and customer order fulfillment.
+                        <strong>Registered Pharmacist:</strong> Authorized to manage pharmaceutical catalog, expiry batches, customer prescriptions, and order dispatching.
                     </div>
                 </li>
                 <li>
                     <i class="bx bx-check-shield"></i>
                     <div>
-                        <strong>Real-time Email Check:</strong> The system automatically verifies email availability before submission.
+                        <strong>POS Cashier:</strong> Optimized for in-store walk-in checkout counter billing and sales history without access to administrative settings.
+                    </div>
+                </li>
+                <li>
+                    <i class="bx bx-check-shield"></i>
+                    <div>
+                        <strong>Delivery Driver:</strong> Access to mobile order delivery portal, GPS maps navigation, customer phone calls, and COD collection.
                     </div>
                 </li>
             </ul>
 
             <div class="quick-stats-box" style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
                 <div class="quick-stats-info">
-                    <div style="font-size: 12px; color: #64748b; font-weight: 500;">Active Admin Accounts</div>
-                    <strong style="font-size: 18px; color: #0f172a; font-weight: 700;"><?php echo $total_admins; ?> Users</strong>
+                    <div style="font-size: 12px; color: #64748b; font-weight: 500;">Active Staff Accounts</div>
+                    <strong style="font-size: 18px; color: #0f172a; font-weight: 700;"><?php echo $total_admins; ?> Staff</strong>
                 </div>
                 <a href="view_user.php?tab=admin" class="btn-secondary" style="height: 38px; padding: 0 14px; font-size: 13px;">
                     Manage
