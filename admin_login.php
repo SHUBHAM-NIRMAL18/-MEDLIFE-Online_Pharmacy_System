@@ -49,7 +49,8 @@ if (isset($_POST['login'])) {
                         $_SESSION['admin_id'] = (int)$row['admin_id'];
                         $_SESSION['admin_email'] = $row['email'];
                         $_SESSION['admin_name'] = $row['name'];
-                        $_SESSION['admin_role'] = (int)$row['status'];
+                        $user_role = !empty($row['role']) ? strtolower(trim($row['role'])) : 'admin';
+                        $_SESSION['admin_role'] = $user_role;
                         $pharm_id = isset($row['pharmacy_id']) ? (int)$row['pharmacy_id'] : 1;
                         $_SESSION['admin_pharmacy_id'] = $pharm_id;
                         $pharm_name = !empty($row['pharmacy_name']) ? $row['pharmacy_name'] : 'MedLife Central Pharmacy';
@@ -60,14 +61,21 @@ if (isset($_POST['login'])) {
                         
                         $_SESSION['toast'] = [
                             'type' => 'success',
-                            'title' => 'Admin Access',
-                            'message' => 'Logged in successfully! Welcome, ' . $row['name'] . '.'
+                            'title' => 'Portal Access',
+                            'message' => 'Logged in successfully! Welcome, ' . $row['name'] . ' (' . ucfirst($user_role) . ').'
                         ];
 
                         if (isset($_POST['remember'])) {
                             setcookie('emailcookie', $email, time() + 86400);
                         }
-                        header('location:admin_home.php');
+
+                        if ($user_role === 'driver') {
+                            header('location:driver_portal.php');
+                        } elseif ($user_role === 'cashier') {
+                            header('location:pos.php');
+                        } else {
+                            header('location:admin_home.php');
+                        }
                         exit();
                     }
                 } else {
