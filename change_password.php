@@ -98,6 +98,9 @@ include('header.php');
                 <a href="user_dashboard.php" class="sidebar-nav-link">
                     <i class="bx bx-package"></i> Order History
                 </a>
+                <a href="customer_prescription.php" class="sidebar-nav-link">
+                    <i class="bx bx-file-blank"></i> My Prescriptions
+                </a>
                 <a href="personal_info.php" class="sidebar-nav-link">
                     <i class="bx bx-user-circle"></i> Personal Info
                 </a>
