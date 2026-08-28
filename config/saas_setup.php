@@ -146,6 +146,25 @@ if (!function_exists('run_saas_migrations')) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         @$conn->query($sql_drivers);
 
+        // 7. Create tbl_customer_prescriptions (Standalone Customer RX Uploads & Verification)
+        $sql_prescriptions = "CREATE TABLE IF NOT EXISTS tbl_customer_prescriptions (
+            rx_id INT AUTO_INCREMENT PRIMARY KEY,
+            pharmacy_id INT NOT NULL DEFAULT 1,
+            user_id INT NOT NULL,
+            patient_name VARCHAR(255) NOT NULL,
+            doctor_name VARCHAR(255) DEFAULT '',
+            doctor_phone VARCHAR(50) DEFAULT '',
+            prescription_file VARCHAR(255) NOT NULL,
+            notes TEXT DEFAULT NULL,
+            status TINYINT(1) DEFAULT 0 COMMENT '0 = Pending Review, 1 = Approved, 2 = Rejected',
+            pharmacist_notes TEXT DEFAULT NULL,
+            verified_by INT DEFAULT NULL,
+            verified_at DATETIME DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pharmacy_rx (pharmacy_id, user_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        @$conn->query($sql_prescriptions);
+
         // Ensure role column exists in tbl_admin (RBAC)
         $chk_role = $conn->query("SHOW COLUMNS FROM tbl_admin LIKE 'role'");
         if ($chk_role && $chk_role->num_rows === 0) {
@@ -170,6 +189,36 @@ if (!function_exists('run_saas_migrations')) {
             @$conn->query("ALTER TABLE tbl_order ADD COLUMN estimated_delivery VARCHAR(100) DEFAULT NULL AFTER delivered_at");
         }
 
+        // Ensure prescription verification columns exist in tbl_order
+        $chk_ps = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'prescription_status'");
+        if ($chk_ps && $chk_ps->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN prescription_status TINYINT(1) DEFAULT 0 AFTER prescription");
+        }
+        $chk_prr = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'prescription_rejection_reason'");
+        if ($chk_prr && $chk_prr->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN prescription_rejection_reason VARCHAR(255) DEFAULT NULL AFTER prescription_status");
+        }
+        $chk_pn = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'pharmacist_notes'");
+        if ($chk_pn && $chk_pn->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN pharmacist_notes TEXT DEFAULT NULL AFTER prescription_rejection_reason");
+        }
+        $chk_vbp = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'verified_by_pharmacist_id'");
+        if ($chk_vbp && $chk_vbp->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN verified_by_pharmacist_id INT DEFAULT NULL AFTER pharmacist_notes");
+        }
+        $chk_va = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'verified_at'");
+        if ($chk_va && $chk_va->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN verified_at DATETIME DEFAULT NULL AFTER verified_by_pharmacist_id");
+        }
+        $chk_doc = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'doctor_name'");
+        if ($chk_doc && $chk_doc->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN doctor_name VARCHAR(255) DEFAULT NULL AFTER verified_at");
+        }
+        $chk_pat = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'patient_name'");
+        if ($chk_pat && $chk_pat->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN patient_name VARCHAR(255) DEFAULT NULL AFTER doctor_name");
+        }
+
         // Ensure batch_number column exists in tbl_products
         $chk_b = $conn->query("SHOW COLUMNS FROM tbl_products LIKE 'batch_number'");
         if ($chk_b && $chk_b->num_rows === 0) {
@@ -187,7 +236,8 @@ if (!function_exists('run_saas_migrations')) {
             'tbl_user',
             'tbl_product_batches',
             'tbl_pos_sales',
-            'tbl_delivery_drivers'
+            'tbl_delivery_drivers',
+            'tbl_customer_prescriptions'
         ];
 
         foreach ($tables_to_migrate as $table) {
