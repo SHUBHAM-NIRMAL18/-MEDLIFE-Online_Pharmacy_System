@@ -129,11 +129,44 @@ $order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $orde
         </div>
 
         <?php if (!empty($data['prescription'])): ?>
-        <div class="admin-form-group">
-          <label>Prescription</label>
-          <a href="<?php echo htmlspecialchars($data['prescription'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="admin-btn view" style="display: inline-flex; gap: 4px; margin-top: 4px;">
-            <i class="bx bx-file"></i> View Prescription
-          </a>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <label style="font-weight: 700; font-size: 13px; color: #0f172a; margin: 0;">
+              <i class="bx bx-file" style="color: #059669;"></i> Prescription Document
+            </label>
+            <div>
+              <?php 
+              $rx_st = (int)($data['prescription_status'] ?? 0);
+              if ($rx_st === 1): ?>
+                <span style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;">
+                  <i class="bx bx-check-shield"></i> Approved
+                </span>
+              <?php elseif ($rx_st === 2): ?>
+                <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;">
+                  <i class="bx bx-x-circle"></i> Rejected
+                </span>
+              <?php else: ?>
+                <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;">
+                  <i class="bx bx-time"></i> Pending Review
+                </span>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <a href="<?php echo htmlspecialchars($data['prescription'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="admin-btn view" style="display: inline-flex; gap: 4px; font-size: 12px;">
+              <i class="bx bx-search-alt"></i> Inspect Prescription Slip
+            </a>
+            <a href="prescription_management.php" class="admin-btn outline" style="display: inline-flex; gap: 4px; font-size: 12px;">
+              <i class="bx bx-layer"></i> Open RX Queue
+            </a>
+          </div>
+
+          <?php if (!empty($data['pharmacist_notes'])): ?>
+            <div style="font-size: 12px; color: #475569; background: #ffffff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 6px;">
+              <strong>Pharmacist Notes:</strong> <?php echo htmlspecialchars($data['pharmacist_notes']); ?>
+            </div>
+          <?php endif; ?>
         </div>
         <?php endif; ?>
 
