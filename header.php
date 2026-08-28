@@ -76,6 +76,8 @@ $all_pharmacies = get_active_pharmacies();
         </div>
       </div>
       <div class="top-links">
+        <a href="customer_prescription.php" class="top-link" style="color: #059669; font-weight: 700;"><i class="bx bx-file-blank"></i> Upload RX / Prescription</a>
+        <span class="divider">|</span>
         <a href="saas_register.php" class="top-link" style="color: #10b981; font-weight: 600;"><i class="bx bx-store-alt"></i> Sell With Us / Open Pharmacy</a>
         <span class="divider">|</span>
         <a href="track_order.php" class="top-link"><i class="bx bx-map-pin"></i> Track Order</a>
