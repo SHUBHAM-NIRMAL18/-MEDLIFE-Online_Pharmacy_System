@@ -92,6 +92,23 @@ $current_staff_role = get_current_admin_role();
         <div class="sidebar-submenu">
           <a href="pos_history.php" class="sidebar-sublink"><i class="bx bx-receipt"></i> POS Sales History</a>
           <?php if ($current_staff_role !== 'cashier'): ?>
+            <?php
+            $conn_dash = get_db_connection();
+            $dash_pending_rx_cnt = 0;
+            $dash_rx_res = $conn_dash->query("SELECT (
+                (SELECT COUNT(*) FROM tbl_order WHERE pharmacy_id = $active_admin_pharmacy_id AND prescription IS NOT NULL AND prescription != '' AND (prescription_status = 0 OR prescription_status IS NULL)) + 
+                (SELECT COUNT(*) FROM tbl_customer_prescriptions WHERE pharmacy_id = $active_admin_pharmacy_id AND status = 0)
+            ) AS cnt");
+            if ($dash_rx_res) {
+                $dash_pending_rx_cnt = (int)$dash_rx_res->fetch_assoc()['cnt'];
+            }
+            ?>
+            <a href="prescription_management.php" class="sidebar-sublink">
+              <i class="bx bx-plus-medical"></i> Prescription Approvals
+              <?php if ($dash_pending_rx_cnt > 0): ?>
+                <span style="margin-left: auto; background: #f59e0b; color: #ffffff; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 800;"><?php echo $dash_pending_rx_cnt; ?></span>
+              <?php endif; ?>
+            </a>
             <a href="admin_order.php" class="sidebar-sublink"><i class="bx bx-globe"></i> Online Orders</a>
             <a href="driver_management.php" class="sidebar-sublink"><i class="bx bx-cycling"></i> Delivery Fleet (Riders)</a>
           <?php endif; ?>
