@@ -60,6 +60,22 @@ if ($crit_res && $crit_res->num_rows > 0) {
     }
 }
 
+// Fetch Pending Prescription Count & Items
+$pendingRxCount = 0;
+$pendingRxItems = [];
+$rx_cnt_res = $conn->query("SELECT (
+    (SELECT COUNT(*) FROM tbl_order WHERE pharmacy_id = $pharmacy_id AND prescription IS NOT NULL AND prescription != '' AND (prescription_status = 0 OR prescription_status IS NULL)) + 
+    (SELECT COUNT(*) FROM tbl_customer_prescriptions WHERE pharmacy_id = $pharmacy_id AND status = 0)
+) AS cnt");
+if ($rx_cnt_res) { $pendingRxCount = (int)$rx_cnt_res->fetch_assoc()['cnt']; }
+
+$rx_items_res = $conn->query("SELECT order_id, user_name, phone, prescription, created_at FROM tbl_order WHERE pharmacy_id = $pharmacy_id AND prescription IS NOT NULL AND prescription != '' AND (prescription_status = 0 OR prescription_status IS NULL) ORDER BY order_id DESC LIMIT 3");
+if ($rx_items_res && $rx_items_res->num_rows > 0) {
+    while ($rx = $rx_items_res->fetch_assoc()) {
+        $pendingRxItems[] = $rx;
+    }
+}
+
 // Fetch Low Stock Count & Items
 $lowStockCount = 0;
 $lowStockItems = [];
@@ -373,6 +389,38 @@ if ($orderRes && $orderRes->num_rows > 0) {
                     </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Pending Prescription Approvals Alert Widget -->
+            <?php if ($pendingRxCount > 0): ?>
+                <div class="admin-card" style="padding: 20px 22px; border-left: 4px solid #f59e0b; background: #fffdf5;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #fef3c7;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #b45309; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="bx bx-plus-medical" style="color: #f59e0b; font-size: 20px;"></i> Pending Prescriptions
+                        </h3>
+                        <a href="prescription_management.php?status=pending" style="font-size: 11.5px; font-weight: 700; color: #d97706; text-decoration: none;">
+                            Review Queue (<?php echo $pendingRxCount; ?>) &rarr;
+                        </a>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <?php foreach ($pendingRxItems as $rx): ?>
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #ffffff; border-radius: 8px; border: 1px solid #fde68a;">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.2;">
+                                        Order #<?php echo $rx['order_id']; ?> &bull; <?php echo htmlspecialchars($rx['user_name']); ?>
+                                    </div>
+                                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                        Phone: <?php echo htmlspecialchars($rx['phone']); ?>
+                                    </div>
+                                </div>
+                                <a href="prescription_management.php" style="background: #059669; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-decoration: none;">
+                                    Verify
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Near Expiry / Expired Medicines Intelligence Alert -->
             <?php if ($criticalBatchCount > 0): ?>
