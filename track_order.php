@@ -148,6 +148,26 @@ include('header.php');
                 </div>
             </div>
 
+            <!-- Prescription Rejection Alert Banner -->
+            <?php if ((int)($order_data['prescription_status'] ?? 0) === 2): ?>
+                <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 14px;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #dc2626; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+                        <i class='bx bx-error-circle'></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 14px; font-weight: 800; color: #991b1b;">Prescription Verification Issue</div>
+                        <p style="font-size: 13px; color: #7f1d1d; margin-top: 4px;">
+                            Reason: <strong><?php echo htmlspecialchars($order_data['prescription_rejection_reason'] ?: $order_data['pharmacist_notes'] ?: 'Doctor signature or license verification required.'); ?></strong>
+                        </p>
+                        <div style="margin-top: 8px;">
+                            <a href="customer_prescription.php" class="btn btn-outline" style="background: #ffffff; color: #991b1b; border-color: #fca5a5; padding: 6px 14px; font-size: 12px; border-radius: 6px;">
+                                <i class='bx bx-upload'></i> Re-upload Valid Prescription
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Live Courier Dispatch Banner -->
             <?php if ($status == 4 && !empty($order_data['driver_name'])): ?>
                 <div style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border: 1px solid #c7d2fe; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
@@ -196,7 +216,14 @@ include('header.php');
                             <i class="bx bx-check-shield"></i>
                         </div>
                         <div class="step-title">Verification</div>
-                        <div class="step-desc">Pharmacist Check</div>
+                        <div class="step-desc">
+                            <?php 
+                            $rx_status_code = (int)($order_data['prescription_status'] ?? 0);
+                            if ($rx_status_code === 1) echo "RX Approved";
+                            elseif ($rx_status_code === 2) echo "RX Rejected";
+                            else echo "Pharmacist Check";
+                            ?>
+                        </div>
                     </div>
 
                     <!-- Step 3 -->
