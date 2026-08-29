@@ -113,7 +113,7 @@ include('header.php');
             </div>
 
             <div class="img-zoom-container">
-                <img id="productMainImage" src="medimg/<?php echo htmlspecialchars($prdct_img, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?>">
+                <img id="productMainImage" src="<?php echo htmlspecialchars(get_product_image_url($prdct_img), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product_name, ENT_QUOTES, 'UTF-8'); ?>">
                 <div id="magnifierGlass" class="img-magnifier-glass"></div>
             </div>
 
