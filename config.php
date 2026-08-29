@@ -156,18 +156,46 @@ if (!function_exists('get_pharmacy_details')) {
     }
 }
 
-// Helper to get all active pharmacies for customer selector
+// Helper to get all active pharmacies with metadata for customer selector and directory
 if (!function_exists('get_active_pharmacies')) {
     function get_active_pharmacies() {
         $conn = get_db_connection();
         $list = [];
-        $res = $conn->query("SELECT * FROM tbl_pharmacies WHERE status = 1 ORDER BY name ASC");
+        $res = $conn->query("SELECT p.*, 
+                                    (SELECT COUNT(*) FROM tbl_products pr WHERE pr.pharmacy_id = p.pharmacy_id AND pr.prdct_status = 1) AS product_count,
+                                    (SELECT COUNT(*) FROM tbl_categories c WHERE c.pharmacy_id = p.pharmacy_id AND c.cat_status = 1) AS category_count
+                             FROM tbl_pharmacies p 
+                             WHERE p.status = 1 
+                             ORDER BY p.pharmacy_id ASC");
         if ($res && $res->num_rows > 0) {
             while ($row = $res->fetch_assoc()) {
                 $list[] = $row;
             }
         }
         return $list;
+    }
+}
+
+// Helper to safely resolve product image URL
+if (!function_exists('get_product_image_url')) {
+    function get_product_image_url($img_path) {
+        if (empty($img_path)) {
+            return 'medimg/img1.jpg';
+        }
+        if (strpos($img_path, 'http://') === 0 || strpos($img_path, 'https://') === 0) {
+            return $img_path;
+        }
+        $clean = trim($img_path);
+        if (file_exists(__DIR__ . '/' . $clean)) {
+            return $clean;
+        }
+        if (file_exists(__DIR__ . '/medimg/' . $clean)) {
+            return 'medimg/' . $clean;
+        }
+        if (file_exists(__DIR__ . '/img/' . $clean)) {
+            return 'img/' . $clean;
+        }
+        return 'medimg/' . $clean;
     }
 }
 
