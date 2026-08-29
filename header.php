@@ -128,6 +128,7 @@ if ($root_res && $root_res->num_rows > 0) {
       <nav>
         <ul class="nav-menu">
           <li><a href="index.php" class="nav-link <?php echo ($active_page == 'index.php') ? 'active' : ''; ?>">HOME</a></li>
+          <li><a href="stores.php" class="nav-link <?php echo ($active_page == 'stores.php') ? 'active' : ''; ?>" style="color: #059669; font-weight: 700;"><i class='bx bx-store-alt'></i> PHARMACIES</a></li>
           <li><a href="search_products.php" class="nav-link <?php echo ($active_page == 'search_products.php') ? 'active' : ''; ?>">ALL PRODUCTS</a></li>
           <li><a href="u_medicines.php" class="nav-link <?php echo ($active_page == 'u_medicines.php') ? 'active' : ''; ?>">MEDICINES</a></li>
           <li><a href="u_supplements.php" class="nav-link <?php echo ($active_page == 'u_supplements.php') ? 'active' : ''; ?>">SUPPLEMENTS</a></li>
