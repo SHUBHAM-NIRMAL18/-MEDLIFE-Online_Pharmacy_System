@@ -384,7 +384,7 @@ include('header.php');
                                         <i class="bx bx-heart"></i>
                                     </button>
                                 </div>
-                                <img src="medimg/<?php echo htmlspecialchars($row['prdct_img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>">
+                                <img src="<?php echo htmlspecialchars(get_product_image_url($row['prdct_img']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($row['prdct_name'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy">
                             </div>
                             <div class="product-info">
                                 <div class="product-meta-row">
