@@ -219,6 +219,20 @@ if (!function_exists('run_saas_migrations')) {
             @$conn->query("ALTER TABLE tbl_order ADD COLUMN patient_name VARCHAR(255) DEFAULT NULL AFTER doctor_name");
         }
 
+        // Ensure payment gateway tracking columns exist in tbl_order
+        $chk_ps = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'payment_status'");
+        if ($chk_ps && $chk_ps->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN payment_status VARCHAR(50) DEFAULT 'Pending' AFTER payment");
+        }
+        $chk_tx = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'transaction_id'");
+        if ($chk_tx && $chk_tx->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN transaction_id VARCHAR(255) DEFAULT NULL AFTER payment_status");
+        }
+        $chk_pd = $conn->query("SHOW COLUMNS FROM tbl_order LIKE 'payment_data'");
+        if ($chk_pd && $chk_pd->num_rows === 0) {
+            @$conn->query("ALTER TABLE tbl_order ADD COLUMN payment_data LONGTEXT DEFAULT NULL AFTER transaction_id");
+        }
+
         // Ensure batch_number column exists in tbl_products
         $chk_b = $conn->query("SHOW COLUMNS FROM tbl_products LIKE 'batch_number'");
         if ($chk_b && $chk_b->num_rows === 0) {
