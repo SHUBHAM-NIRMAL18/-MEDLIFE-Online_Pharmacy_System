@@ -376,4 +376,41 @@ include('header.php');
 
 </main>
 
+<?php if (!empty($tracking_no) && $order_data): ?>
+<script>
+// ==========================================================
+// Real-Time Live Order Tracking Poller
+// ==========================================================
+(function() {
+    var trackingCode = "<?php echo addslashes($order_data['tracking_order']); ?>";
+    var currentStatus = <?php echo (int)$order_data['status']; ?>;
+
+    function checkLiveTracking() {
+        if (document.hidden) return; // Pause polling when tab is inactive
+
+        fetch('actions/get_live_order_status.php?tracking=' + encodeURIComponent(trackingCode), { cache: 'no-store' })
+            .then(function(res) { return res.json(); })
+            .then(function(res) {
+                if (res.success && res.mode === 'tracking') {
+                    if (parseInt(res.status) !== currentStatus) {
+                        // Status changed in real-time -> reload cleanly to update all timeline cards and maps
+                        window.location.reload();
+                    }
+                }
+            })
+            .catch(function(err) {
+                // Ignore transient network errors
+            });
+    }
+
+    // Check every 3.5 seconds
+    setInterval(checkLiveTracking, 3500);
+
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) checkLiveTracking();
+    });
+})();
+</script>
+<?php endif; ?>
+
 <?php include('footer.php'); ?>
