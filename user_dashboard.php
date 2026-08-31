@@ -87,9 +87,11 @@ include('header.php');
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php while ($items = $order_run->fetch_assoc()): ?>
-                                    <tr>
+                            <tbody id="userOrdersTbody">
+                                <?php while ($items = $order_run->fetch_assoc()): 
+                                    $st = (int)$items['status'];
+                                ?>
+                                    <tr id="order-row-<?php echo $items['order_id']; ?>" data-order-id="<?php echo $items['order_id']; ?>" data-tracking="<?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?>" data-status="<?php echo $st; ?>">
                                         <td style="font-family: monospace; font-weight: 500;"><?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td>
                                             <span style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
@@ -100,38 +102,44 @@ include('header.php');
                                         <td style="font-weight: 600; color: var(--text-main);">रु. <?php echo number_format($items['total'], 2); ?></td>
                                         <td>
                                             <?php 
-                                            $pm = strtolower($items['payment'] ?? 'cod');
-                                            $pst = $items['payment_status'] ?? 'Pending';
-                                            if ($pm === 'esewa') {
-                                                echo '<span style="font-size: 11px; font-weight: 700; color: #438f2f;"><strong style="color: #60bb46; font-size: 12px;">e</strong> eSewa ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
-                                            } elseif ($pm === 'khalti') {
-                                                echo '<span style="font-size: 11px; font-weight: 700; color: #5c2d91;"><strong style="color: #5c2d91; font-size: 12px;">K</strong> Khalti ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
-                                            } else {
-                                                echo '<span style="font-size: 11.5px; color: #64748b; font-weight: 600;">COD</span>';
-                                            }
-                                            ?>
+                                             $pm = strtolower($items['payment'] ?? 'cod');
+                                             $pst = $items['payment_status'] ?? 'Pending';
+                                             if ($pm === 'esewa') {
+                                                 echo '<span style="font-size: 11px; font-weight: 700; color: #438f2f;"><strong style="color: #60bb46; font-size: 12px;">e</strong> eSewa ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
+                                             } elseif ($pm === 'khalti') {
+                                                 echo '<span style="font-size: 11px; font-weight: 700; color: #5c2d91;"><strong style="color: #5c2d91; font-size: 12px;">K</strong> Khalti ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
+                                             } else {
+                                                 echo '<span style="font-size: 11.5px; color: #64748b; font-weight: 600;">COD</span>';
+                                             }
+                                             ?>
                                         </td>
-                                        <td>
+                                        <td class="order-status-cell" id="order-status-<?php echo $items['order_id']; ?>">
                                             <?php 
-                                            if ($items['status'] == 0) {
-                                                echo "<span class='status-badge process'>Under Process</span>";
-                                            } elseif ($items['status'] == 1) {
-                                                echo "<span class='status-badge completed'>Completed</span>";
-                                            } elseif ($items['status'] == 2) {
-                                                echo "<span class='status-badge cancelled'>Cancelled</span>";
+                                            if ($st === 0) {
+                                                echo "<span class='status-badge process'><i class='bx bx-loader-alt bx-spin'></i> Under Process</span>";
+                                            } elseif ($st === 3) {
+                                                echo "<span class='status-badge ready'><i class='bx bx-package'></i> Ready for Pickup</span>";
+                                            } elseif ($st === 4) {
+                                                echo "<span class='status-badge out-delivery'><i class='bx bx-cycling'></i> Out for Delivery</span>";
+                                            } elseif ($st === 1) {
+                                                echo "<span class='status-badge completed'><i class='bx bx-check-circle'></i> Delivered</span>";
+                                            } elseif ($st === 2) {
+                                                echo "<span class='status-badge cancelled'><i class='bx bx-x-circle'></i> Cancelled</span>";
                                             }
                                             ?>
                                         </td>
-                                         <td>
+                                         <td class="order-action-cell" id="order-actions-<?php echo $items['order_id']; ?>">
                                              <div style="display: flex; gap: 6px; align-items: center;">
                                                  <button type="button" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #2563eb; border-color: rgba(37, 99, 235, 0.3); background: #eff6ff;" onclick="openOrderProductsModal(<?php echo $items['order_id']; ?>, '<?php echo htmlspecialchars(addslashes($items['tracking_order']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo date("M d, Y, g:i a", strtotime($items['created_at'])); ?>')">
                                                      <i class="bx bx-show"></i> Items
                                                  </button>
-                                                 <?php if ($items['status'] == 1): ?>
-                                                     <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
-                                                         <i class="bx bx-receipt"></i> Receipt
-                                                     </a>
-                                                 <?php endif; ?>
+                                                 <span class="receipt-btn-wrapper" id="receipt-btn-<?php echo $items['order_id']; ?>">
+                                                     <?php if ($st === 1): ?>
+                                                         <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
+                                                             <i class="bx bx-receipt"></i> Receipt
+                                                         </a>
+                                                     <?php endif; ?>
+                                                 </span>
                                                  <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
                                                      <i class="bx bx-map-pin"></i> Track
                                                  </a>
@@ -262,6 +270,113 @@ function closeOrderProductsModal() {
 document.getElementById('orderProductsModal').addEventListener('click', function(e) {
     if (e.target === this) closeOrderProductsModal();
 });
+
+// ==========================================================
+// Real-Time Live Order Status Poller (Zero-Reload Sync)
+// ==========================================================
+(function() {
+    var previousStatuses = {};
+    // Cache initial statuses from DOM
+    document.querySelectorAll('tr[data-order-id]').forEach(function(row) {
+        var oid = row.getAttribute('data-order-id');
+        var st = parseInt(row.getAttribute('data-status'));
+        previousStatuses[oid] = st;
+    });
+
+    function showLiveToast(title, message, icon) {
+        var container = document.getElementById('liveToastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'liveToastContainer';
+            container.className = 'live-toast-container';
+            document.body.appendChild(container);
+        }
+
+        var toast = document.createElement('div');
+        toast.className = 'live-toast';
+        toast.innerHTML = '<i class="' + (icon || 'bx bx-bell') + '" style="font-size: 24px; color: #10b981; flex-shrink: 0;"></i>' +
+                          '<div>' +
+                          '<div style="font-weight: 700; font-size: 13.5px; margin-bottom: 2px;">' + title + '</div>' +
+                          '<div style="font-size: 12px; color: #cbd5e1; line-height: 1.3;">' + message + '</div>' +
+                          '</div>';
+
+        container.appendChild(toast);
+
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 5000);
+    }
+
+    function checkLiveStatuses() {
+        if (document.hidden) return; // Save resources if tab is backgrounded
+
+        fetch('actions/get_live_order_status.php', { cache: 'no-store' })
+            .then(function(res) { return res.json(); })
+            .then(function(res) {
+                if (res.success && Array.isArray(res.orders)) {
+                    res.orders.forEach(function(order) {
+                        var oid = order.order_id;
+                        var newStatus = parseInt(order.status);
+                        var oldStatus = previousStatuses[oid];
+
+                        if (oldStatus !== undefined && oldStatus !== newStatus) {
+                            // Status changed!
+                            previousStatuses[oid] = newStatus;
+
+                            var row = document.getElementById('order-row-' + oid);
+                            var statusCell = document.getElementById('order-status-' + oid);
+                            var receiptWrapper = document.getElementById('receipt-btn-' + oid);
+
+                            if (row) row.setAttribute('data-status', newStatus);
+
+                            if (statusCell) {
+                                statusCell.innerHTML = order.badge_html;
+                                statusCell.classList.add('status-pulse-highlight');
+                                setTimeout(function() {
+                                    statusCell.classList.remove('status-pulse-highlight');
+                                }, 2500);
+                            }
+
+                            // If now delivered, reveal receipt button if not already present
+                            if (newStatus === 1 && receiptWrapper && !receiptWrapper.querySelector('a')) {
+                                receiptWrapper.innerHTML = '<a href="' + order.receipt_url + '" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);"><i class="bx bx-receipt"></i> Receipt</a>';
+                            }
+
+                            var icon = 'bx bx-package';
+                            var msg = 'Status updated to ' + order.status_label;
+                            if (newStatus === 4) {
+                                icon = 'bx bx-cycling';
+                                msg = 'Your medicines are out for delivery' + (order.driver_name ? ' with courier ' + order.driver_name : '') + '!';
+                            } else if (newStatus === 1) {
+                                icon = 'bx bx-check-circle';
+                                msg = 'Order delivered successfully! Tax receipt is now available.';
+                            } else if (newStatus === 3) {
+                                icon = 'bx bx-package';
+                                msg = 'Your pharmacy parcel has been packed & verified!';
+                            }
+
+                            showLiveToast('Order #' + order.tracking_order, msg, icon);
+                        } else if (oldStatus === undefined) {
+                            previousStatuses[oid] = newStatus;
+                        }
+                    });
+                }
+            })
+            .catch(function(err) {
+                // Silent catch for network hiccups
+            });
+    }
+
+    // Start background poller every 3.5 seconds
+    setInterval(checkLiveStatuses, 3500);
+
+    // Immediate check when returning to tab
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) checkLiveStatuses();
+    });
+})();
 </script>
 
 <?php include('footer.php'); ?>
