@@ -1,9 +1,13 @@
 <?php 
 require_once 'config.php';
-include_once('dashboard.php');
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$active_admin_pharmacy_id = require_admin_tenant();
 $conn = get_db_connection();
-$pharmacy_id = isset($_SESSION['admin_pharmacy_id']) ? (int)$_SESSION['admin_pharmacy_id'] : 1;
+$pharmacy_id = $active_admin_pharmacy_id;
 
 // Handle order deletion
 if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
@@ -35,6 +39,9 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     header('Location: admin_order.php');
     exit();
 }
+
+// Include Dashboard Layout Shell after redirects
+include_once('dashboard.php');
 
 $orders = $conn->query("SELECT o.*, d.name AS driver_name, d.phone AS driver_phone, d.vehicle_type, d.vehicle_number 
                        FROM tbl_order o 
