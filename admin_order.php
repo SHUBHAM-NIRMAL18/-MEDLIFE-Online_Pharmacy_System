@@ -125,12 +125,15 @@ $orders = $conn->query("SELECT o.*, d.name AS driver_name, d.phone AS driver_pho
                   ?>
                 </td>
                 <td>
-                  <div style="display: flex; gap: 6px;">
+                  <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="admin_payment_slip.php?order_id=<?php echo $item['order_id']; ?>" target="_blank" class="admin-btn outline" style="padding: 4px 8px; font-size: 11.5px; height: auto;" title="View Payment Slip">
+                      <i class="bx bx-receipt"></i> Slip
+                    </a>
                     <a href="view_order.php?order_id=<?php echo $item['order_id']; ?>" class="admin-btn view">
                       <i class="bx bx-show"></i> View
                     </a>
                     <button class="admin-btn danger-btn" onclick="confirmDeleteOrder(<?php echo $item['order_id']; ?>, '<?php echo htmlspecialchars($item['tracking_order'], ENT_QUOTES, 'UTF-8'); ?>')">
-                      <i class="bx bx-trash"></i> Delete
+                      <i class="bx bx-trash"></i>
                     </button>
                   </div>
                 </td>

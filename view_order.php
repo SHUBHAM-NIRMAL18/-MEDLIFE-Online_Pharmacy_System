@@ -86,12 +86,15 @@ $order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $orde
         <h1>Order #<?php echo $data['order_id']; ?></h1>
         <p>Tracking: <strong style="font-family: monospace;"><?php echo htmlspecialchars($data['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></strong> &middot; Placed on <?php echo date("F d, Y, g:i a", strtotime($data['created_at'])); ?></p>
       </div>
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <a href="order_receipt.php?id=<?php echo $data['order_id']; ?>" target="_blank" class="admin-btn primary" style="height: 36px; display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
-          <i class="bx bx-printer"></i> Print Tax Receipt
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <a href="admin_payment_slip.php?order_id=<?php echo $data['order_id']; ?>" target="_blank" class="admin-btn primary" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+          <i class="bx bx-receipt"></i> View Payment Slip
+        </a>
+        <a href="order_receipt.php?id=<?php echo $data['order_id']; ?>" target="_blank" class="admin-btn outline" style="height: 36px; display: inline-flex; align-items: center; gap: 4px;">
+          <i class="bx bx-printer"></i> Tax Receipt
         </a>
         <a href="admin_order.php" class="admin-btn outline" style="height: 36px; display: inline-flex; align-items: center; gap: 4px;">
-          <i class="bx bx-arrow-back"></i> Back to Orders
+          <i class="bx bx-arrow-back"></i> Back
         </a>
       </div>
     </div>
@@ -162,7 +165,12 @@ $order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $orde
         <?php if (!empty($data['transaction_id'])): ?>
         <div class="admin-form-group">
           <label>Gateway Transaction ID</label>
-          <input type="text" class="admin-form-control" style="font-family: monospace; font-size: 12px;" value="<?php echo htmlspecialchars($data['transaction_id'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="admin-form-control" style="font-family: monospace; font-size: 12px; flex: 1;" value="<?php echo htmlspecialchars($data['transaction_id'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+            <a href="admin_payment_slip.php?order_id=<?php echo $data['order_id']; ?>" target="_blank" class="admin-btn outline" style="padding: 6px 12px; font-size: 12px; height: auto;" title="View Payment Slip">
+              <i class="bx bx-receipt"></i> Slip
+            </a>
+          </div>
         </div>
         <?php endif; ?>
 
