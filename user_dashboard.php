@@ -75,80 +75,82 @@ include('header.php');
                     $order_run = $order_stmt->get_result();
                     if ($order_run && $order_run->num_rows > 0):
                 ?>
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Tracking No</th>
-                                    <th>Pharmacy Store</th>
-                                    <th>Date</th>
-                                    <th>Total Price</th>
-                                    <th>Payment</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userOrdersTbody">
-                                <?php while ($items = $order_run->fetch_assoc()): 
-                                    $st = (int)$items['status'];
-                                ?>
-                                    <tr id="order-row-<?php echo $items['order_id']; ?>" data-order-id="<?php echo $items['order_id']; ?>" data-tracking="<?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?>" data-status="<?php echo $st; ?>">
-                                        <td style="font-family: monospace; font-weight: 500;"><?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td>
-                                            <span style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                                <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars(!empty($items['pharmacy_name']) ? $items['pharmacy_name'] : 'MedLife Central'); ?>
-                                            </span>
-                                        </td>
-                                        <td><?php echo date("M d, Y", strtotime($items['created_at'])); ?></td>
-                                        <td style="font-weight: 600; color: var(--text-main);">रु. <?php echo number_format($items['total'], 2); ?></td>
-                                        <td>
-                                            <?php 
-                                             $pm = strtolower($items['payment'] ?? 'cod');
-                                             $pst = $items['payment_status'] ?? 'Pending';
-                                             if ($pm === 'esewa') {
-                                                 echo '<span style="font-size: 11px; font-weight: 700; color: #438f2f;"><strong style="color: #60bb46; font-size: 12px;">e</strong> eSewa ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
-                                             } elseif ($pm === 'khalti') {
-                                                 echo '<span style="font-size: 11px; font-weight: 700; color: #5c2d91;"><strong style="color: #5c2d91; font-size: 12px;">K</strong> Khalti ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
-                                             } else {
-                                                 echo '<span style="font-size: 11.5px; color: #64748b; font-weight: 600;">COD</span>';
-                                             }
-                                             ?>
-                                        </td>
-                                        <td class="order-status-cell" id="order-status-<?php echo $items['order_id']; ?>">
-                                            <?php 
-                                            if ($st === 0) {
-                                                echo "<span class='status-badge process'><i class='bx bx-loader-alt bx-spin'></i> Under Process</span>";
-                                            } elseif ($st === 3) {
-                                                echo "<span class='status-badge ready'><i class='bx bx-package'></i> Ready for Pickup</span>";
-                                            } elseif ($st === 4) {
-                                                echo "<span class='status-badge out-delivery'><i class='bx bx-cycling'></i> Out for Delivery</span>";
-                                            } elseif ($st === 1) {
-                                                echo "<span class='status-badge completed'><i class='bx bx-check-circle'></i> Delivered</span>";
-                                            } elseif ($st === 2) {
-                                                echo "<span class='status-badge cancelled'><i class='bx bx-x-circle'></i> Cancelled</span>";
-                                            }
-                                            ?>
-                                        </td>
-                                         <td class="order-action-cell" id="order-actions-<?php echo $items['order_id']; ?>">
-                                             <div style="display: flex; gap: 6px; align-items: center;">
-                                                 <button type="button" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #2563eb; border-color: rgba(37, 99, 235, 0.3); background: #eff6ff;" onclick="openOrderProductsModal(<?php echo $items['order_id']; ?>, '<?php echo htmlspecialchars(addslashes($items['tracking_order']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo date("M d, Y, g:i a", strtotime($items['created_at'])); ?>')">
-                                                     <i class="bx bx-show"></i> Items
-                                                 </button>
-                                                 <span class="receipt-btn-wrapper" id="receipt-btn-<?php echo $items['order_id']; ?>">
-                                                     <?php if ($st === 1): ?>
-                                                         <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
-                                                             <i class="bx bx-receipt"></i> Receipt
-                                                         </a>
-                                                     <?php endif; ?>
-                                                 </span>
-                                                 <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                                     <i class="bx bx-map-pin"></i> Track
-                                                 </a>
-                                             </div>
-                                         </td>
-                                     </tr>
-                                 <?php endwhile; ?>
-                             </tbody>
-                         </table>
+                        <div class="dashboard-table-responsive">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tracking No</th>
+                                        <th>Pharmacy Store</th>
+                                        <th>Date</th>
+                                        <th>Total Price</th>
+                                        <th>Payment</th>
+                                        <th>Status</th>
+                                        <th style="text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userOrdersTbody">
+                                    <?php while ($items = $order_run->fetch_assoc()): 
+                                        $st = (int)$items['status'];
+                                    ?>
+                                        <tr id="order-row-<?php echo $items['order_id']; ?>" data-order-id="<?php echo $items['order_id']; ?>" data-tracking="<?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?>" data-status="<?php echo $st; ?>">
+                                            <td class="order-tracking-text"><?php echo htmlspecialchars($items['tracking_order'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <span style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25); font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;">
+                                                    <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars(!empty($items['pharmacy_name']) ? $items['pharmacy_name'] : 'MedLife Central'); ?>
+                                                </span>
+                                            </td>
+                                            <td style="white-space: nowrap; font-size: 12px;"><?php echo date("M d, Y", strtotime($items['created_at'])); ?></td>
+                                            <td class="order-price-text">रु. <?php echo number_format($items['total'], 2); ?></td>
+                                            <td>
+                                                <?php 
+                                                 $pm = strtolower($items['payment'] ?? 'cod');
+                                                 $pst = $items['payment_status'] ?? 'Pending';
+                                                 if ($pm === 'esewa') {
+                                                     echo '<span style="font-size: 11px; font-weight: 700; color: #438f2f; white-space: nowrap;"><strong style="color: #60bb46; font-size: 12px;">e</strong> eSewa ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
+                                                 } elseif ($pm === 'khalti') {
+                                                     echo '<span style="font-size: 11px; font-weight: 700; color: #5c2d91; white-space: nowrap;"><strong style="color: #5c2d91; font-size: 12px;">K</strong> Khalti ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
+                                                 } else {
+                                                     echo '<span style="font-size: 11px; color: #64748b; font-weight: 600; white-space: nowrap;">COD</span>';
+                                                 }
+                                                 ?>
+                                            </td>
+                                            <td class="order-status-cell" id="order-status-<?php echo $items['order_id']; ?>">
+                                                <?php 
+                                                if ($st === 0) {
+                                                    echo "<span class='status-badge process'><i class='bx bx-loader-alt bx-spin'></i> Under Process</span>";
+                                                } elseif ($st === 3) {
+                                                    echo "<span class='status-badge ready'><i class='bx bx-package'></i> Ready for Pickup</span>";
+                                                } elseif ($st === 4) {
+                                                    echo "<span class='status-badge out-delivery'><i class='bx bx-cycling'></i> Out for Delivery</span>";
+                                                } elseif ($st === 1) {
+                                                    echo "<span class='status-badge completed'><i class='bx bx-check-circle'></i> Delivered</span>";
+                                                } elseif ($st === 2) {
+                                                    echo "<span class='status-badge cancelled'><i class='bx bx-x-circle'></i> Cancelled</span>";
+                                                }
+                                                ?>
+                                            </td>
+                                             <td class="order-action-cell" id="order-actions-<?php echo $items['order_id']; ?>">
+                                                 <div class="order-actions-group">
+                                                     <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; border-radius: 5px; display: inline-flex; align-items: center; gap: 3px; color: #2563eb; border-color: rgba(37, 99, 235, 0.3); background: #eff6ff;" onclick="openOrderProductsModal(<?php echo $items['order_id']; ?>, '<?php echo htmlspecialchars(addslashes($items['tracking_order']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo date("M d, Y, g:i a", strtotime($items['created_at'])); ?>')">
+                                                         <i class="bx bx-show"></i> Items
+                                                     </button>
+                                                     <span class="receipt-btn-wrapper" id="receipt-btn-<?php echo $items['order_id']; ?>">
+                                                         <?php if ($st === 1): ?>
+                                                             <a href="order_receipt.php?id=<?php echo $items['order_id']; ?>" target="_blank" class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; border-radius: 5px; display: inline-flex; align-items: center; gap: 3px; color: #059669; border-color: rgba(5, 150, 105, 0.3);">
+                                                                 <i class="bx bx-receipt"></i> Receipt
+                                                             </a>
+                                                         <?php endif; ?>
+                                                     </span>
+                                                     <a href="track_order.php?tracking=<?php echo urlencode($items['tracking_order']); ?>" class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; border-radius: 5px; display: inline-flex; align-items: center; gap: 3px;">
+                                                         <i class="bx bx-map-pin"></i> Track
+                                                     </a>
+                                                 </div>
+                                             </td>
+                                         </tr>
+                                     <?php endwhile; ?>
+                                 </tbody>
+                             </table>
+                         </div>
                  <?php 
                      else: 
                  ?>
