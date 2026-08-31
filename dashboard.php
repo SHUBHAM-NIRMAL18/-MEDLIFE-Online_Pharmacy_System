@@ -90,7 +90,8 @@ $current_staff_role = get_current_admin_role();
           <i class="bx bx-chevron-right submenu-arrow"></i>
         </div>
         <div class="sidebar-submenu">
-          <a href="pos_history.php" class="sidebar-sublink"><i class="bx bx-receipt"></i> POS Sales History</a>
+          <a href="admin_payments.php" class="sidebar-sublink"><i class="bx bx-receipt"></i> Payment Slips & Logs</a>
+          <a href="pos_history.php" class="sidebar-sublink"><i class="bx bx-store"></i> POS Sales History</a>
           <?php if ($current_staff_role !== 'cashier'): ?>
             <?php
             $conn_dash = get_db_connection();
@@ -132,43 +133,52 @@ $current_staff_role = get_current_admin_role();
     <!-- Top Bar -->
     <header class="admin-topbar">
       <div class="topbar-left">
-        <button class="sidebar-toggle" id="sidebarToggle">
+        <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
           <i class="bx bx-menu"></i>
         </button>
-        <h2>Admin Panel</h2>
+        <span class="topbar-heading">Admin Panel</span>
+        
         <?php if (!empty($active_pharmacy_info['name'])): ?>
-          <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 13px; padding: 4px 12px; border-radius: 20px; font-weight: 500; margin-left: 12px; display: inline-flex; align-items: center; gap: 6px;">
-            <i class="bx bx-store-alt"></i> <?php echo htmlspecialchars($active_pharmacy_info['name']); ?>
-            <span style="font-size: 10px; background: #10b981; color: #fff; padding: 1px 6px; border-radius: 10px; font-weight: 700; text-transform: uppercase;"><?php echo htmlspecialchars($active_pharmacy_info['plan'] ?? 'Pro'); ?></span>
-          </span>
+          <div class="topbar-pharmacy-pill" title="<?php echo htmlspecialchars($active_pharmacy_info['name']); ?>">
+            <i class="bx bx-store-alt"></i>
+            <span class="topbar-pharmacy-name"><?php echo htmlspecialchars($active_pharmacy_info['name']); ?></span>
+            <span class="topbar-plan-tag"><?php echo htmlspecialchars($active_pharmacy_info['plan'] ?? 'Pro'); ?></span>
+          </div>
         <?php endif; ?>
 
         <!-- Role Badge -->
         <?php 
-          $role_badge_style = 'background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);';
+          $role_class = 'role-admin';
           $role_icon = 'bx-shield-quarter';
           if ($current_staff_role === 'pharmacist') {
-              $role_badge_style = 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);';
+              $role_class = 'role-pharmacist';
               $role_icon = 'bx-plus-medical';
           } elseif ($current_staff_role === 'cashier') {
-              $role_badge_style = 'background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3);';
+              $role_class = 'role-cashier';
               $role_icon = 'bx-purchase-tag-alt';
           }
         ?>
-        <span style="<?php echo $role_badge_style; ?> font-size: 12px; padding: 3px 10px; border-radius: 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: capitalize;">
+        <span class="topbar-role-badge <?php echo $role_class; ?>">
           <i class='bx <?php echo $role_icon; ?>'></i> <?php echo htmlspecialchars($current_staff_role); ?>
         </span>
       </div>
-      <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
-        <a href="pos.php" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
-          <i class="bx bx-desktop"></i> Open POS Cashier
+
+      <div class="topbar-right">
+        <a href="admin_payments.php" class="topbar-action-btn btn-payments" title="Payment Slips & Gateway Logs">
+          <i class="bx bx-receipt"></i> <span>Slips</span>
         </a>
-        <a href="index.php?pharmacy=<?php echo $active_admin_pharmacy_id; ?>" target="_blank" class="topbar-store-link" style="color: #059669; background: rgba(5, 150, 105, 0.12); border: 1px solid rgba(5, 150, 105, 0.25); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-          <i class="bx bx-link-external"></i> Storefront
+        <a href="pos.php" class="topbar-action-btn btn-pos" title="Open In-Store POS Cashier">
+          <i class="bx bx-desktop"></i> <span>POS</span>
         </a>
-        <span class="admin-name"><span>Welcome,</span> <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>
-        <a href="admin_logout.php" class="topbar-logout">
-          <i class="bx bx-log-out"></i> Logout
+        <a href="index.php?pharmacy=<?php echo $active_admin_pharmacy_id; ?>" target="_blank" class="topbar-action-btn btn-store" title="View Customer Storefront">
+          <i class="bx bx-link-external"></i> <span>Store</span>
+        </a>
+        <div class="admin-user-info" title="<?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?>">
+          <div class="admin-avatar-icon"><i class="bx bx-user"></i></div>
+          <span class="admin-name-text"><?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>
+        </div>
+        <a href="admin_logout.php" class="topbar-logout" title="Logout">
+          <i class="bx bx-log-out"></i>
         </a>
       </div>
     </header>

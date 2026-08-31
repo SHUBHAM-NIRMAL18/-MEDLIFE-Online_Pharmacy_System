@@ -66,16 +66,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 20px;
   z-index: 900;
   box-shadow: var(--admin-topbar-shadow);
   transition: left 0.3s ease;
+  white-space: nowrap;
+  gap: 12px;
 }
 
 .admin-topbar .topbar-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .admin-topbar .topbar-left .sidebar-toggle {
@@ -86,53 +90,238 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
   transition: var(--admin-transition);
+  flex-shrink: 0;
 }
 
 .admin-topbar .topbar-left .sidebar-toggle:hover {
+  background-color: #f1f5f9;
   color: var(--admin-accent);
 }
 
-.admin-topbar .topbar-left h2 {
-  font-size: 16px;
-  font-weight: 600;
+.topbar-heading {
+  font-size: 15px;
+  font-weight: 700;
   color: var(--admin-text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topbar-pharmacy-pill {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 260px;
+  min-width: 0;
+  overflow: hidden;
+  flex-shrink: 1;
+}
+
+.topbar-pharmacy-pill i {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.topbar-pharmacy-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-plan-tag {
+  font-size: 9.5px;
+  background: #059669;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.topbar-role-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.topbar-role-badge.role-admin {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.topbar-role-badge.role-pharmacist {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.topbar-role-badge.role-cashier {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .admin-topbar .topbar-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.admin-topbar .topbar-right .admin-name {
-  font-size: 13.5px;
-  font-weight: 500;
+.topbar-action-btn {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: var(--admin-transition);
+  white-space: nowrap;
+}
+
+.topbar-action-btn.btn-payments {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.topbar-action-btn.btn-payments:hover {
+  background: #ffffff;
+  border-color: #059669;
+  color: #059669;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.topbar-action-btn.btn-pos {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.topbar-action-btn.btn-pos:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  color: #ffffff;
+}
+
+.topbar-action-btn.btn-store {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.topbar-action-btn.btn-store:hover {
+  background: rgba(5, 150, 105, 0.15);
+}
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 20px;
+  max-width: 170px;
+}
+
+.admin-avatar-icon {
+  width: 22px;
+  height: 22px;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.admin-name-text {
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--admin-text);
-}
-
-.admin-topbar .topbar-right .admin-name span {
-  color: var(--admin-text-muted);
-  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-logout {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--admin-radius-sm);
-  font-size: 13px;
-  font-weight: 500;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  font-size: 17px;
   color: var(--admin-danger);
   background-color: rgba(239, 68, 68, 0.06);
   border: 1px solid rgba(239, 68, 68, 0.15);
   text-decoration: none;
   transition: var(--admin-transition);
+  flex-shrink: 0;
 }
 
 .topbar-logout:hover {
-  background-color: rgba(239, 68, 68, 0.12);
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+@media (max-width: 1200px) {
+  .topbar-pharmacy-pill {
+    max-width: 180px;
+  }
+  .admin-user-info {
+    max-width: 130px;
+  }
+}
+
+@media (max-width: 992px) {
+  .topbar-action-btn span {
+    display: none;
+  }
+  .topbar-action-btn {
+    padding: 0 8px;
+  }
+  .admin-user-info {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-topbar {
+    left: 0;
+    padding: 0 12px;
+  }
+  .topbar-heading {
+    display: none;
+  }
+  .topbar-pharmacy-pill {
+    max-width: 140px;
+  }
 }
 
 /* =========================================================================
