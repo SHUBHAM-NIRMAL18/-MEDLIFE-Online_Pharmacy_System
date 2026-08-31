@@ -124,9 +124,47 @@ $order_items = $conn->query("SELECT * FROM tbl_orderitems WHERE order_id = $orde
         </div>
 
         <div class="admin-form-group">
-          <label>Payment Method</label>
-          <input type="text" class="admin-form-control" value="<?php echo strtoupper(htmlspecialchars($data['payment'], ENT_QUOTES, 'UTF-8')); ?>" readonly>
+          <label>Payment Method & Settlement</label>
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+            <?php 
+            $pay_mode = strtolower($data['payment'] ?? 'cod');
+            $pay_st = $data['payment_status'] ?? 'Pending';
+            if ($pay_mode === 'esewa'): ?>
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(96, 187, 70, 0.12); color: #438f2f; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+                <strong style="color: #60bb46;">e</strong> eSewa ePay v2
+              </span>
+            <?php elseif ($pay_mode === 'khalti'): ?>
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(92, 45, 145, 0.12); color: #5c2d91; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+                <strong style="color: #5c2d91;">K</strong> Khalti Digital Wallet
+              </span>
+            <?php else: ?>
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: #f1f5f9; color: #334155; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+                <i class='bx bx-money'></i> Cash on Delivery (COD)
+              </span>
+            <?php endif; ?>
+
+            <?php if (strcasecmp($pay_st, 'Paid') === 0): ?>
+              <span style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                <i class="bx bx-check-circle"></i> Paid Online
+              </span>
+            <?php elseif (strcasecmp($pay_st, 'Failed') === 0): ?>
+              <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                <i class="bx bx-x-circle"></i> Failed
+              </span>
+            <?php else: ?>
+              <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                <i class="bx bx-time"></i> Pending
+              </span>
+            <?php endif; ?>
+          </div>
         </div>
+
+        <?php if (!empty($data['transaction_id'])): ?>
+        <div class="admin-form-group">
+          <label>Gateway Transaction ID</label>
+          <input type="text" class="admin-form-control" style="font-family: monospace; font-size: 12px;" value="<?php echo htmlspecialchars($data['transaction_id'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+        </div>
+        <?php endif; ?>
 
         <?php if (!empty($data['prescription'])): ?>
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">

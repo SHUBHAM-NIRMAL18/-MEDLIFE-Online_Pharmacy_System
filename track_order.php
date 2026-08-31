@@ -314,8 +314,39 @@ include('header.php');
                     </div>
                     <div class="track-info-item">
                         <strong>Payment Method:</strong>
-                        <span style="text-transform: uppercase;"><?php echo htmlspecialchars($order_data['payment'], ENT_QUOTES, 'UTF-8'); ?></span>
+                        <div>
+                            <?php 
+                            $pm = strtolower($order_data['payment'] ?? 'cod');
+                            $pst = $order_data['payment_status'] ?? 'Pending';
+                            if ($pm === 'esewa'): ?>
+                                <span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #438f2f; font-size: 12px; background: rgba(96, 187, 70, 0.1); padding: 2px 8px; border-radius: 6px;">
+                                    <strong style="color: #60bb46;">e</strong> eSewa Mobile Wallet
+                                </span>
+                            <?php elseif ($pm === 'khalti'): ?>
+                                <span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #5c2d91; font-size: 12px; background: rgba(92, 45, 145, 0.1); padding: 2px 8px; border-radius: 6px;">
+                                    <strong style="color: #5c2d91;">K</strong> Khalti Digital Wallet
+                                </span>
+                            <?php else: ?>
+                                <span style="font-weight: 600; color: #334155; font-size: 12px;">Cash on Delivery (COD)</span>
+                            <?php endif; ?>
+                            
+                            <?php if (strcasecmp($pst, 'Paid') === 0): ?>
+                                <span style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 4px;">
+                                    <i class="bx bx-check-shield"></i> Paid
+                                </span>
+                            <?php else: ?>
+                                <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 4px;">
+                                    Pending
+                                </span>
+                            <?php endif; ?>
+                        </div>
                     </div>
+                    <?php if (!empty($order_data['transaction_id'])): ?>
+                    <div class="track-info-item">
+                        <strong>Transaction Ref:</strong>
+                        <span style="font-family: monospace; font-size: 11.5px; color: #475569; word-break: break-all;"><?php echo htmlspecialchars($order_data['transaction_id'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    </div>
+                    <?php endif; ?>
                     <div class="track-info-item">
                         <strong>Prescription:</strong>
                         <span>

@@ -79,6 +79,41 @@ if (isset($_POST['login'])) {
                         exit();
                     }
                 } else {
+                    // Check tbl_super_admin fallback
+                    $stmt_sa = $connection->prepare("SELECT * FROM tbl_super_admin WHERE email = ? AND password = ?");
+                    if ($stmt_sa) {
+                        $stmt_sa->bind_param("ss", $email, $password);
+                        $stmt_sa->execute();
+                        $sa_res = $stmt_sa->get_result();
+                        if ($sa_res && $sa_res->num_rows === 1) {
+                            $sa_row = $sa_res->fetch_assoc();
+                            $_SESSION['super_admin_login'] = true;
+                            $_SESSION['super_admin_id'] = (int)$sa_row['super_admin_id'];
+                            $_SESSION['super_admin_email'] = $sa_row['email'];
+                            $_SESSION['super_admin_name'] = $sa_row['name'];
+
+                            $_SESSION['admin_login'] = true;
+                            $_SESSION['admin_id'] = 1;
+                            $_SESSION['admin_email'] = $sa_row['email'];
+                            $_SESSION['admin_name'] = $sa_row['name'];
+                            $_SESSION['admin_role'] = 'admin';
+                            $_SESSION['admin_pharmacy_id'] = 1;
+                            $_SESSION['admin_pharmacy_name'] = 'MedLife Central Pharmacy (Super Admin Mode)';
+
+                            unset($_SESSION['user_login'], $_SESSION['user_id'], $_SESSION['email'], $_SESSION['name'], $_SESSION['login_status']);
+
+                            $_SESSION['toast'] = [
+                                'type' => 'success',
+                                'title' => 'Super Admin Access',
+                                'message' => 'Logged in as SaaS Platform Administrator.'
+                            ];
+
+                            header('location:saas_admin.php');
+                            exit();
+                        }
+                        $stmt_sa->close();
+                    }
+
                     $error = 'Incorrect email or password';
                 }
                 $stmt->close();

@@ -342,7 +342,22 @@ include('header.php');
                     <p><strong>Name:</strong> <?php echo htmlspecialchars($order['user_name'], ENT_QUOTES, 'UTF-8'); ?></p>
                     <p><strong>Phone:</strong> <?php echo htmlspecialchars($order['phone'], ENT_QUOTES, 'UTF-8'); ?></p>
                     <p><strong>Address:</strong> <?php echo htmlspecialchars($order['address'], ENT_QUOTES, 'UTF-8'); ?></p>
-                    <p><strong>Payment Mode:</strong> <span style="text-transform: uppercase; font-weight: 600; color: #059669;"><?php echo htmlspecialchars($order['payment'], ENT_QUOTES, 'UTF-8'); ?></span></p>
+                    <p><strong>Payment Mode:</strong> 
+                        <?php 
+                        $pm = strtolower($order['payment'] ?? 'cod');
+                        $pstatus = $order['payment_status'] ?? 'Pending';
+                        $tx = $order['transaction_id'] ?? '';
+                        if ($pm === 'esewa'): ?>
+                            <span style="color: #438f2f; font-weight: 700;"><strong style="color: #60bb46;">e</strong> eSewa Mobile Wallet (<?php echo htmlspecialchars($pstatus); ?>)</span>
+                        <?php elseif ($pm === 'khalti'): ?>
+                            <span style="color: #5c2d91; font-weight: 700;"><strong style="color: #5c2d91;">K</strong> Khalti Digital Wallet (<?php echo htmlspecialchars($pstatus); ?>)</span>
+                        <?php else: ?>
+                            <span style="color: #059669; font-weight: 700;">Cash on Delivery (<?php echo htmlspecialchars($pstatus); ?>)</span>
+                        <?php endif; ?>
+                    </p>
+                    <?php if (!empty($tx)): ?>
+                        <p><strong>Gateway Txn ID:</strong> <span style="font-family: monospace; font-size: 11.5px; font-weight: 600; color: #334155;"><?php echo htmlspecialchars($tx); ?></span></p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -397,8 +412,17 @@ include('header.php');
 
             <!-- Stamp & Authorization Footer -->
             <div class="receipt-footer-stamp">
-                <div class="stamp-box">
-                    <i class="bx bx-check-shield"></i> Official Pharmacy Verified Dispatch
+                <div class="stamp-box" <?php if ($pm === 'esewa') echo 'style="border-color: #60bb46; color: #438f2f;"'; elseif ($pm === 'khalti') echo 'style="border-color: #5c2d91; color: #5c2d91;"'; ?>>
+                    <i class="bx bx-check-shield"></i> 
+                    <?php 
+                    if ($pm === 'esewa' && strcasecmp($pstatus, 'Paid') === 0) {
+                        echo "PAID ONLINE VIA ESEWA";
+                    } elseif ($pm === 'khalti' && strcasecmp($pstatus, 'Paid') === 0) {
+                        echo "PAID ONLINE VIA KHALTI";
+                    } else {
+                        echo "OFFICIAL PHARMACY DISPATCH";
+                    }
+                    ?>
                 </div>
                 <div style="font-size: 12px; color: #64748b; text-align: right;">
                     Thank you for choosing Medlife Care! For inquiries call +977 1-4228999

@@ -69,6 +69,7 @@ $orders = $conn->query("SELECT o.*, d.name AS driver_name, d.phone AS driver_pho
             <th>Delivery Courier</th>
             <th>Date</th>
             <th>Total</th>
+            <th>Payment</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -95,6 +96,19 @@ $orders = $conn->query("SELECT o.*, d.name AS driver_name, d.phone AS driver_pho
                 </td>
                 <td><?php echo date("M d, Y", strtotime($item['created_at'])); ?></td>
                 <td style="font-weight: 700; color: #059669;">रु. <?php echo number_format($item['total'], 2); ?></td>
+                <td>
+                  <?php 
+                  $pm = strtolower($item['payment'] ?? 'cod');
+                  $pst = $item['payment_status'] ?? 'Pending';
+                  if ($pm === 'esewa') {
+                      echo '<span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #438f2f; font-size: 11.5px;"><strong style="color: #60bb46; font-size: 13px;">e</strong> eSewa ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid Online"></i>' : '<span style="color: #b45309; font-size: 10px;">(' . $pst . ')</span>') . '</span>';
+                  } elseif ($pm === 'khalti') {
+                      echo '<span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #5c2d91; font-size: 11.5px;"><strong style="color: #5c2d91; font-size: 13px;">K</strong> Khalti ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid Online"></i>' : '<span style="color: #b45309; font-size: 10px;">(' . $pst . ')</span>') . '</span>';
+                  } else {
+                      echo '<span style="color: #64748b; font-size: 12px; font-weight: 600;"><i class="bx bx-money"></i> COD</span>';
+                  }
+                  ?>
+                </td>
                 <td>
                   <?php
                   if ($item['status'] == 0) {

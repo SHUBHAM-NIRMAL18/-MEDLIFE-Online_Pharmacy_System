@@ -82,6 +82,7 @@ include('header.php');
                                     <th>Pharmacy Store</th>
                                     <th>Date</th>
                                     <th>Total Price</th>
+                                    <th>Payment</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -97,6 +98,19 @@ include('header.php');
                                         </td>
                                         <td><?php echo date("M d, Y", strtotime($items['created_at'])); ?></td>
                                         <td style="font-weight: 600; color: var(--text-main);">रु. <?php echo number_format($items['total'], 2); ?></td>
+                                        <td>
+                                            <?php 
+                                            $pm = strtolower($items['payment'] ?? 'cod');
+                                            $pst = $items['payment_status'] ?? 'Pending';
+                                            if ($pm === 'esewa') {
+                                                echo '<span style="font-size: 11px; font-weight: 700; color: #438f2f;"><strong style="color: #60bb46; font-size: 12px;">e</strong> eSewa ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
+                                            } elseif ($pm === 'khalti') {
+                                                echo '<span style="font-size: 11px; font-weight: 700; color: #5c2d91;"><strong style="color: #5c2d91; font-size: 12px;">K</strong> Khalti ' . (strcasecmp($pst, 'Paid') === 0 ? '<i class="bx bx-check-circle" style="color: #059669;" title="Paid"></i>' : '') . '</span>';
+                                            } else {
+                                                echo '<span style="font-size: 11.5px; color: #64748b; font-weight: 600;">COD</span>';
+                                            }
+                                            ?>
+                                        </td>
                                         <td>
                                             <?php 
                                             if ($items['status'] == 0) {
