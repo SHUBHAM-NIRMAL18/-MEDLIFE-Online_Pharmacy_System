@@ -358,5 +358,6 @@ function copyToClipboard(text) {
   });
 }
 </script>
-
-<?php include_once('footer.php'); ?>
+</main>
+</body>
+</html>
